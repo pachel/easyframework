@@ -1,6 +1,14 @@
 .idea
+<<<<<<< HEAD
 vendor/
 composer.lock
 tmp/
 nbproject/
 .htaccess
+=======
+.git
+vendor/
+composer.lock
+nbproject/
+.htaccess
+>>>>>>> First
