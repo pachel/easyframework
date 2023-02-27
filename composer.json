@@ -1,0 +1,19 @@
+{
+    "name": "pachel/easyframework",
+    "description": "Easy Framework",
+    "type": "library",
+    "autoload": {
+        "classmap": ["src/","examples/"]
+
+    },
+    "authors": [
+        {
+            "name": "Laszlo Toth",
+            "email": "pachel82@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "php": ">=7.3"
+    }
+}
