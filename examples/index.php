@@ -1,6 +1,8 @@
 <?php
+namespace TDF;
 use Pachel\EasyFrameWork;
 USe Pachel\EasyFrameWork\Routing;
+use Configs;
 require_once __DIR__."/../vendor/autoload.php";
 
 class SmallController{
@@ -8,17 +10,23 @@ class SmallController{
     public function __construct($app)
     {
         $this->app = $app;
+
     }
 
     public function dashboard(){
-        $this->app->set("");
+        $s = $this->app->get("APP");
+        print_r($s);
     }
 }
+EasyFrameWork\Base::instance()->config(__DIR__ . "/config/App.php");
 
 $Base = EasyFrameWork\Base::instance();
 
 
-$Base->set("GLOBAL.test",1);
+echo $Base->get("TESZT");
 
-Routing::get(SmallController::class,"dashboard")->layout();
 
+
+
+
+$Base->run();
