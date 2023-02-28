@@ -33,6 +33,10 @@ final class Routing
     {
         self::addroute($path, $object, "cli");
     }
+    public static function always(array|string|object $object)
+    {
+        self::addroute(".*", $object, "get|post");
+    }
 
     private static function addroute($path, $object, $method)
     {

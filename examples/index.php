@@ -40,6 +40,7 @@ $Auth->authorise(function ($page){
     echo "asdasd";
     return true;
 });
+
 Routing::get("/",[SmallController::class,"dashboard1"]);
 Routing::postget("dashboard",[SmallController::class,"dashboard"]);
 Routing::get("dashboard/teszt",[SmallController::class,"dashboard2"]);

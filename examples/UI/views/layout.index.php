@@ -1,5 +1,5 @@
 <!--LAYOUT:layout.php-->
-@CONTENT: asda sdsd  asd
+@CONTENT:
 {{APP.URL}}
 <?php
 echo $kex;
@@ -7,13 +7,14 @@ echo $kex;
 $x=0;
 ?>
 
-:CONTENT@
+:CONTENt@
 @footer:
-footerbe kell ez a tartalom, pl javascripthez
+footerbe kell ez a tartalom, pl javascripthez, de lehet több is!
 <?=$x;?>
 :footer@
 
 @js:
+<h2>js</h2>
 <script type="application/javascript">
 
 </script>
