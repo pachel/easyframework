@@ -11,7 +11,7 @@ class Draw extends Prefab
     public static function template(string $template)
     {
         $caller = debug_backtrace()[1];
-        $ui = Base::instance()->get("APP.views");
+        $ui = Base::instance()->env("APP.views");
         if (!is_file($ui . $template)) {
             throw new \Exception("Template not found: " . $ui . $template);
         }
@@ -42,7 +42,7 @@ class Draw extends Prefab
     public function show($haslayout, $layout)
     {
         if ($haslayout) {
-            $layoutcontent = file_get_contents(Base::instance()->get("APP.VIEWS") . $layout);
+            $layoutcontent = file_get_contents(Base::instance()->env("APP.VIEWS") . $layout);
             $this->replace_variables($layoutcontent);
             $this->run_content($layoutcontent);
             foreach ($this->contents as $content) {
@@ -58,7 +58,7 @@ class Draw extends Prefab
 
     private function run_content(&$content)
     {
-        $vars = Base::instance()->get(null);
+        $vars = Base::instance()->env(null);
         foreach ($vars as $name => $value) {
             $$name = $value;
         }
@@ -72,7 +72,7 @@ class Draw extends Prefab
     {
         if (preg_match_all("/\{\{([^\$\}]+)\}\}/", $content, $preg)) {
             foreach ($preg[1] as $index => $varname) {
-                $content = str_replace($preg[0][$index], Base::instance()->get($varname), $content);
+                $content = str_replace($preg[0][$index], Base::instance()->env($varname), $content);
             }
         }
     }
@@ -81,8 +81,8 @@ class Draw extends Prefab
     {
         if (preg_match("/<!\-\-layout:(.+)\-\->/i", $content, $preg)) {
             $layout = $preg[1];
-            if (!is_file(Base::instance()->get("APP.VIEWS") . $layout)) {
-                throw new \Exception("Layout not exists: " . Base::instance()->get("APP.VIEWS") . $layout);
+            if (!is_file(Base::instance()->env("APP.VIEWS") . $layout)) {
+                throw new \Exception("Layout not exists: " . Base::instance()->env("APP.VIEWS") . $layout);
             }
             return true;
         }

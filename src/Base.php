@@ -17,7 +17,7 @@ class Base extends Prefab
     /**
      * Gyári változók, ezeken a felhasználó nem módosíthatja a $this->set() függvénnyel
      */
-    const VAR_READONLY = ["GET", "POST", "SERVER", "COOKIE", "SESSION", "FILES", "EFW","ROUTES","APP","MYSQL","REDIS"];
+    const VAR_READONLY = ["GET", "POST", "SERVER", "COOKIE", "SESSION", "FILES", "EFW","ROUTES","APP","MYSQL","REDIS","STATUS"];
     /**
      * Ide azok a változók kerülnek majd, amiket gyorsítótárazni kell majd
      */
@@ -30,6 +30,7 @@ class Base extends Prefab
      * Ezeket a függvényeket kitiltjuk a temple fájlokból
      */
     //const DRAW_FUNCTIONS_FILTER = ["include(.+?)","require","require_once","fopen","file_get_content","file_put_content"];
+
     /**
      * PHP 5 allows developers to declare constructor methods for classes.
      * Classes which have a constructor method call this method on each newly-created object,
@@ -46,7 +47,7 @@ class Base extends Prefab
         $this->setvars();
 
     }
-    public function get($key)
+    private function get($key)
     {
         if(empty($key)){
             return self::$vars;
@@ -79,7 +80,7 @@ class Base extends Prefab
         return null;
     }
 
-    public function set($key, $value): void
+    private function set($key, $value): void
     {
         if ($this->is_systemvarialbe($key) && !$this->from_myself()) {
             throw new \Exception("Readonly variables: " . $key);
@@ -120,22 +121,64 @@ class Base extends Prefab
     public function run()
     {
         $route = Routing::matchroute();
+        $this->status(200);
         if($route){
-            if(is_array($route["object"]) && method_exists($route["object"][0],$route["object"][1])){
-                $class = new $route["object"][0]($this);
-                $method = $route["object"][1];
-                $class->$method();
-                Draw::instance()->generate();
+            if($this->run_content($route)){
+
             }
-            elseif (is_object($route["object"])){
-                $route["object"]();
-            }
-            else{
-                $this->set("STATUS",404);
-            }
+        }
+        else{
+            $this->status(404);
+        }
+        if($this->status() != 200){
+
+        }
+
+        Draw::instance()->generate();
+    }
+    private function run_content($route)
+    {
+        if(is_array($route["object"]) && method_exists($route["object"][0],$route["object"][1])){
+            $class = new $route["object"][0]($this);
+            $method = $route["object"][1];
+            $class->$method();
+
+            return true;
+        }
+        elseif (is_object($route["object"])){
+            $route["object"]();
+
+            return true;
+        }
+        else{
+            $this->status(404);
+            return false;
         }
     }
 
+    /**
+     * @return mixed
+     */
+    public function env(){
+        $args = func_get_args();
+        if(count($args)==1){
+            return $this->get($args[0]);
+        }
+        elseif (count($args)==2){
+            $this->set($args[0],$args[1]);
+        }
+        else{
+
+        }
+    }
+    public function status(){
+        $args = func_get_args();
+        if(count($args)==0){
+            return $this->get("STATUS");
+        }
+        $this->set("STATUS",$args[0]);
+
+    }
     private function from_myself(): bool
     {
         foreach (debug_backtrace() as $item) {

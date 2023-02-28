@@ -18,6 +18,7 @@ final class Routing
         self::addroute($path, $object, "get");
 
     }
+
     public static function postget(string $path, array|string|object $object)
     {
         self::addroute($path, $object, "get|post");
@@ -33,9 +34,10 @@ final class Routing
     {
         self::addroute($path, $object, "cli");
     }
-    public static function always(array|string|object $object)
+
+    public static function annex(string $container, array|string|object $object)
     {
-        self::addroute(".*", $object, "get|post");
+        // self::addroute(".*", $object, "get|post");
     }
 
     private static function addroute($path, $object, $method)
@@ -55,10 +57,10 @@ final class Routing
 
     private static function cut_objectstring($object)
     {
-        if(is_string($object)){
-            if(preg_match("/^(.+)\->(.+)$/",$object,$preg)){
+        if (is_string($object)) {
+            if (preg_match("/^(.+)\->(.+)$/", $object, $preg)) {
                 return [
-                  $preg[1],$preg[2]
+                    $preg[1], $preg[2]
                 ];
             }
         }
@@ -68,26 +70,38 @@ final class Routing
     public static function matchroute(): bool|array
     {
         usort(self::$ROUTES, [self::class, "sortroutes"]);
-        $URI = Base::instance()->get("SERVER.REQUEST_URI");
-        $argv = Base::instance()->get("SERVER.argv");
-        if(empty($URI) && !empty($argv)){
+        $URI = Base::instance()->env("SERVER.REQUEST_URI");
+        $argv = Base::instance()->env("SERVER.argv");
+        if (empty($URI) && !empty($argv)) {
             $URI = $argv[1];
+        } else {
+            $URI = preg_replace("/\?.*$/", "", $URI);
+            $URI = Functions::checkSlash($URI);
         }
+
         foreach (self::$ROUTES as &$route) {
-            if (preg_match(">^.*" . $route["path"] . "$>", $URI) && preg_match("/".self::get_request_method()."/i",$route["method"])) {
+
+            $route["path"] = Functions::checkSlash($route["path"]);
+         //   echo $URI . "\n";
+          //  echo $route["path"] . "\n";
+            if (preg_match(">^.*" . $route["path"] . "$>", preg_replace("#([^:])//#", "$1/", $URI)) && preg_match("/" . self::get_request_method() . "/i", $route["method"])) {
                 return $route;
             }
         }
         return false;
     }
-    private static function get_request_method(){
-        $method = Base::instance()->get("SERVER.REQUEST_METHOD");
 
-        if(empty($method)){
+
+    private static function get_request_method()
+    {
+        $method = Base::instance()->env("SERVER.REQUEST_METHOD");
+        echo $method;
+        if (empty($method)) {
             return "CLI";
         }
         return $method;
     }
+
     private static function getmethod()
     {
 

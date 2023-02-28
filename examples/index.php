@@ -16,19 +16,19 @@ class SmallController{
     }
 
     public function dashboard(){
-        $this->app->set("kex",1);
+        $this->app->env("kex",1);
         Draw::template("layout.index.php");
     }
     public function dashboard2(){
-
-
+        echo "2";
+        Draw::template("layout.index.php");
     }
     public function email_szinkron(){
         echo "cli";
     }
-    public function dashboard1(){
+    public function landing(){
 
-        $this->app->set("kex","DASHBOARD1");
+        $this->app->env("kex","DASHBOARD1");
         Draw::template("layout.index.php");
     }
 }
@@ -36,12 +36,13 @@ class SmallController{
 Base::instance()->config(__DIR__ . "/config/App.php");
 $Base = Base::instance();
 $Auth = \Pachel\EasyFrameWork\Auth::instance();
+/*
 $Auth->authorise(function ($page){
-    echo "asdasd";
+   // echo "asdasd";
     return true;
-});
+});*/
 
-Routing::get("/",[SmallController::class,"dashboard1"]);
+Routing::get("/",[SmallController::class,"landing"]);
 Routing::postget("dashboard",[SmallController::class,"dashboard"]);
 Routing::get("dashboard/teszt",[SmallController::class,"dashboard2"]);
 
@@ -49,5 +50,6 @@ Routing::cli("emailszinkron","SmallController->email_szinkron");
 Routing::cli("run",function (){
     echo "run";
 });
+
 
 $Base->run();
