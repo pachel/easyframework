@@ -3,12 +3,7 @@
     "description": "Easy Framework",
     "type": "library",
     "autoload": {
-        "classmap": ["src/","examples/*"],
-        "psr-4": {
-            "Pachel\\EasyFrameWork\\" : "src",
-            "Configs\\" : "examples/config"
-        }
-
+        "classmap": ["src/","examples/"]
     },
     "authors": [
         {

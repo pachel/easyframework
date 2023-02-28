@@ -14,11 +14,22 @@ class Base extends Prefab
      * @var array $vars
      */
     private static array $vars;
-
-    const VAR_READONLY = ["GET", "POST", "SERVER", "COOKIE", "SESSION", "FILES", "EFW","ROUTES","APP","MYSQL"];
-
-
-
+    /**
+     * Gyári változók, ezeken a felhasználó nem módosíthatja a $this->set() függvénnyel
+     */
+    const VAR_READONLY = ["GET", "POST", "SERVER", "COOKIE", "SESSION", "FILES", "EFW","ROUTES","APP","MYSQL","REDIS"];
+    /**
+     * Ide azok a változók kerülnek majd, amiket gyorsítótárazni kell majd
+     */
+    const VAR_CACHE = "CACHE";
+    /**
+     * Azok a változók, ahol meg kell nézni, hogy a karakterlánc végén egy perjel legyen
+     */
+    const VAR_PATHS = ["app.ui","app.views","app.url","app.logs","app.temp"];
+    /**
+     * Ezeket a függvényeket kitiltjuk a temple fájlokból
+     */
+    //const DRAW_FUNCTIONS_FILTER = ["include(.+?)","require","require_once","fopen","file_get_content","file_put_content"];
     /**
      * PHP 5 allows developers to declare constructor methods for classes.
      * Classes which have a constructor method call this method on each newly-created object,
@@ -37,21 +48,40 @@ class Base extends Prefab
     }
     public function get($key)
     {
+        if(empty($key)){
+            return self::$vars;
+        }
         if (!preg_match("/^((.*)\.(.+))|(.+)$/i", $key, $preg)) {
             throw new \Exception("Invalid key format!");
         }
 
         if (empty($preg[1])) {
-            return self::$vars[strtoupper($preg[0])];
+            if(!isset(self::$vars[strtoupper($preg[0])]) && !isset(self::$vars[$preg[0]])){
+                return null;
+            }
+            if($this->is_systemvarialbe($key)) {
+                return self::$vars[strtoupper($preg[0])];
+            }
+            else{
+                return self::$vars[$preg[0]];
+            }
         } else {
-            return self::$vars[strtoupper($preg[2])][strtoupper($preg[3])];
+            if(!isset(self::$vars[strtoupper($preg[2])][strtoupper($preg[3])]) && !isset(self::$vars[$preg[2]][$preg[3]])){
+                return null;
+            }
+            if($this->is_systemvarialbe($key)) {
+                return self::$vars[strtoupper($preg[2])][strtoupper($preg[3])];
+            }
+            else{
+                return self::$vars[$preg[2]][$preg[3]];
+            }
         }
         return null;
     }
 
     public function set($key, $value): void
     {
-        if (preg_match("/^" . implode("|", self::VAR_READONLY) . ".*/i", $key) && !$this->from_myself()) {
+        if ($this->is_systemvarialbe($key) && !$this->from_myself()) {
             throw new \Exception("Readonly variables: " . $key);
         }
         if (!preg_match("/^((.*)\.(.+))|(.+)$/i", $key, $preg)) {
@@ -59,23 +89,46 @@ class Base extends Prefab
         }
 
         if (empty($preg[1])) {
-            self::$vars[strtoupper($preg[0])] = $value;
+            if ($this->is_systemvarialbe($key)) {
+                self::$vars[strtoupper($preg[0])] = $value;
+            }
+            else{
+                self::$vars[$preg[0]] = $value;
+            }
         } else {
-            self::$vars[strtoupper($preg[2])][strtoupper($preg[3])] = $value;
+            if ($this->is_systemvarialbe($key)) {
+                self::$vars[strtoupper($preg[2])][strtoupper($preg[3])] = $value;
+            }
+            else{
+                self::$vars[$preg[2]][$preg[3]] = $value;
+            }
         }
 
     }
-
+    private function is_systemvarialbe($key){
+        if (preg_match("/^" . implode("|", self::VAR_READONLY) . ".*/i", $key)) {
+            return true;
+        }
+        return false;
+    }
+    private function is_path($key){
+        if (preg_match("/^" . implode("|", self::VAR_PATHS) . ".*/i", $key)) {
+            return true;
+        }
+        return false;
+    }
     public function run()
     {
         $route = Routing::matchroute();
         if($route){
-            if(method_exists($route["object"][0],$route["object"][1])){
-
+            if(is_array($route["object"]) && method_exists($route["object"][0],$route["object"][1])){
                 $class = new $route["object"][0]($this);
                 $method = $route["object"][1];
                 $class->$method();
-                eval('?><?php phpinfo();');
+                Draw::instance()->generate();
+            }
+            elseif (is_object($route["object"])){
+                $route["object"]();
             }
             else{
                 $this->set("STATUS",404);
@@ -93,25 +146,20 @@ class Base extends Prefab
         return false;
     }
 
-    public function __call(string $name, array $arguments)
+    public function reroute($route)
     {
-        switch ($name) {
-            case "set":
-                $this->set("_USERSVARIABLES." . $arguments[0], $arguments[1]);
-                break;
-        }
-    }
-
-    public function reroute()
-    {
-
+        header("location:".$this->get("APP.URL").$route);
+        exit();
     }
 
     private function setvars(): void
     {
         $this->set("GET", $_GET);
         $this->set("POST", $_POST);
-        $this->set("SERVER", $_SERVER);
+        foreach ($_SERVER AS $key=>$value){
+            $s2[strtoupper($key)] = $value;
+        }
+        $this->set("SERVER", $s2);
         $this->set("SESSION", (isset($_SESSION) ? $_SESSION : null));
         $this->set("FILES", $_FILES);
         $this->set("COOKIE", $_COOKIE);
@@ -136,6 +184,9 @@ class Base extends Prefab
             throw new \Exception("Config error!");
         }
         foreach ($config as $key => $item) {
+            if($this->is_path($key)){
+                $item = Functions::checkSlash($item);
+            }
             $this->set($key, $item);
         }
     }

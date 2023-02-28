@@ -2,4 +2,6 @@
 vendor/
 composer.lock
 nbproject/
+examples/logs
+examples/temp
 .htaccess
