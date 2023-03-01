@@ -5,3 +5,4 @@ nbproject/
 examples/logs
 examples/temp
 /.htaccess
+.phpunit.cache
