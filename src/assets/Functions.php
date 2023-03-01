@@ -4,6 +4,9 @@ namespace Pachel\EasyFrameWork;
 
 class Functions
 {
+    public const
+        ERROR_NOT_CONFIGURED = "The app is not configured!";
+
     private static $internalEncoding = 'UTF-8';
     /**
      * @param string $dir

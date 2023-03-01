@@ -38,17 +38,18 @@ class SmallController{
 
 Base::instance()->config(__DIR__ . "/config/App.php");
 $Base = Base::instance();
-$Auth = \Pachel\EasyFrameWork\Auth::instance();
+
+/*$Auth = \Pachel\EasyFrameWork\Auth::instance();
 
 $Auth->authorise(function ($page){
     return true;
-});
+});*/
 
 Routing::get("/",function (){
     echo "sa";
     Draw::template("layout.index.php");
 });
-/*
+
 Routing::postget("dashboard",[SmallController::class,"dashboard"]);
 Routing::get("dashboard/teszt",[SmallController::class,"dashboard2"]);
 
@@ -58,5 +59,6 @@ Routing::cli("run",function (){
 });
 
 Routing::layout(".*",[SmallController::class,"layout"],"layout.php");
-*/
+
+$Base->env("GT",1);
 $Base->run();

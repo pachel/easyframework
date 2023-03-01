@@ -48,13 +48,13 @@ class Base extends Prefab
 
     }
 
-    private function get($key)
+    private function get($key,$fromself = true)
     {
         if (empty($key)) {
             return self::$vars;
         }
         if (!preg_match("/^((.*)\.(.+))|(.+)$/i", $key, $preg)) {
-            throw new \Exception("Invalid key format!");
+            new \Exception("Invalid key format!",100);
         }
 
         if (empty($preg[1])) {
@@ -79,9 +79,9 @@ class Base extends Prefab
         return "";
     }
 
-    private function set($key, $value): void
+    private function set($key, $value,$fromself = true): void
     {
-        if ($this->is_systemvarialbe($key) && !$this->from_myself()) {
+        if ($this->is_systemvarialbe($key) && !$fromself) {
             throw new \Exception("Readonly variables: " . $key);
         }
         if (!preg_match("/^((.*)\.(.+))|(.+)$/i", $key, $preg)) {
@@ -130,6 +130,9 @@ class Base extends Prefab
 
     public function run()
     {
+        if (!$this->env("APP.CONFIGURED")){
+            throw new \Exception(Functions::ERROR_NOT_CONFIGURED);
+        }
         $route = Routing::matchroute();
         $this->status(200);
         if ($route) {
@@ -177,7 +180,7 @@ class Base extends Prefab
         if (count($args) == 1) {
             return $this->get($args[0]);
         } elseif (count($args) == 2) {
-            $this->set($args[0], $args[1]);
+            $this->set($args[0], $args[1],false);
         } else {
 
         }
@@ -195,10 +198,18 @@ class Base extends Prefab
 
     private function from_myself(): bool
     {
+     //   print_r(debug_backtrace() );
+        $env = false;
         foreach (debug_backtrace() as $item) {
-            if ($item["function"] == "set" && preg_match("/Base\.php$/", $item["file"])) {
+            if ($item["function"] == "env" && preg_match("/Base\.php$/", $item["file"])) {
                 return true;
             }
+            if($item["function"] == "env"){
+                $env = true;
+            }
+        }
+        if(!$env){
+            return true;
         }
         return false;
     }
@@ -220,6 +231,7 @@ class Base extends Prefab
         $this->set("SESSION", (isset($_SESSION) ? $_SESSION : null));
         $this->set("FILES", $_FILES);
         $this->set("COOKIE", $_COOKIE);
+        $this->set("EFW.configured",false);
         $this->getserverurl();
 
     }
@@ -244,9 +256,13 @@ class Base extends Prefab
 
             if ($this->is_path($key)) {
                 $item = Functions::checkSlash($item);
+                if(!is_dir($item)){
+                    throw new \Exception("Directory is not exists: ".$item);
+                }
             }
             $this->set($key, $item);
         }
+        $this->set("EFW.configured",true);
     }
 }
 
