@@ -2,17 +2,42 @@
 
 namespace Pachel\EasyFrameWork;
 
+use Pachel\EasyFrameWork\Messages;
+use PHPUnit\Framework\Warning;
+
 class Draw extends Prefab
 {
     private static array $vars;
 
     private array $contents;
 
+    private $layout;
+    public function view(string $view){
+        $viewpath = Base::instance()->env("APP.views") . $view;
+        if (!is_file($viewpath)) {
+            throw new \Exception(Messages::DRAW_TEMPLATE_NOT_FOUND);
+        }
+        $content = file_get_contents($viewpath);
+        $this->set_layout($content);
+
+        self::$vars["template"] = $viewpath;
+    }
+    private function set_layout($content):void{
+        if (preg_match("/<!\-\-layout:(.+)\-\->/i", $content, $preg)) {
+            if (!is_file(Base::instance()->env("APP.VIEWS") . $preg[1])) {
+                throw new \Exception("Layout not exists: " . Base::instance()->env("APP.VIEWS") . $preg[1]);
+            }
+            $this->layout = Base::instance()->env("APP.VIEWS").$preg[1];
+        }
+    }
+    private function get_view_info(string $viewpath){
+
+    }
     public static function template(string $template)
     {
         $ui = Base::instance()->env("APP.views");
         if (!is_file($ui . $template)) {
-            throw new \Exception("Template not found: " . $ui . $template);
+            throw new \Exception(Messages::DRAW_TEMPLATE_NOT_FOUND);
         }
         //$route = Routing::matchroute();
         self::$vars["template"] = $ui . $template;
@@ -24,6 +49,7 @@ class Draw extends Prefab
         if(self::haslayout($content,$layout)){
 
         }
+
     }
     public function generate()
     {
@@ -36,16 +62,16 @@ class Draw extends Prefab
         $this->run_content($content);
         $this->cut_template($content);
 
-        $haslayout = $this->haslayout($content, $layout);
-
-        $this->show($haslayout, $layout);
+      //  $haslayout = $this->haslayout($content, $layout);
+        $this->set_layout($content);
+        $this->show();
 
     }
 
-    public function show($haslayout, $layout)
+    public function show()
     {
-        if ($haslayout) {
-            $layoutcontent = file_get_contents(Base::instance()->env("APP.VIEWS") . $layout);
+        if (!empty($this->layout)) {
+            $layoutcontent = file_get_contents($this->layout);
             $this->replace_variables($layoutcontent);
             $this->run_content($layoutcontent);
             foreach ($this->contents as $content) {
@@ -62,13 +88,16 @@ class Draw extends Prefab
     private function run_content(&$content)
     {
         $vars = Base::instance()->env(null);
-        foreach ($vars as $name => $value) {
-            $$name = $value;
-        }
-        unset($vars);
-        ob_start();
-        eval("?>" . $content . "<?php");
-        $content = ob_get_clean();
+        extract($vars);
+
+
+            ob_start();
+            eval("?>" . $content . "<?php");
+            $content = ob_get_clean();
+        //$this->contents[] = $content;
+
+
+
     }
 
     private function replace_variables(&$content)
@@ -77,7 +106,6 @@ class Draw extends Prefab
             foreach ($preg[1] as $index => $varname) {
                 $variable = Base::instance()->env($varname);
                 $content = str_replace($preg[0][$index], $variable, $content);
-
             }
         }
     }

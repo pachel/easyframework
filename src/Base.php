@@ -14,6 +14,7 @@ class Base extends Prefab
      * @var array $vars
      */
     private static array $vars;
+    private const CONFIG_REQUIREMENT = ["APP.URL","APP.UI","APP.VIEWS","APP.LOGS"];
     /**
      * Gyári változók, ezeken a felhasználó nem módosíthatja a $this->set() függvénnyel
      */
@@ -25,7 +26,7 @@ class Base extends Prefab
     /**
      * Azok a változók, ahol meg kell nézni, hogy a karakterlánc végén egy perjel legyen
      */
-    const VAR_PATHS = ["app.ui", "app.views", "app.url", "app.logs", "app.temp"];
+    const VAR_PATHS = ["app.ui", "app.views", "app.url", "app.logs"];
     /**
      * Ezeket a függvényeket kitiltjuk a temple fájlokból
      */
@@ -44,6 +45,7 @@ class Base extends Prefab
      */
     public function __construct()
     {
+
         $this->setvars();
 
     }
@@ -87,7 +89,7 @@ class Base extends Prefab
         if (!preg_match("/^((.*)\.(.+))|(.+)$/i", $key, $preg)) {
             throw new \Exception("Invalid key format!");
         }
-
+//        echo $key."\n";
         if (empty($preg[1])) {
             if ($this->is_systemvarialbe($key)) {
                 if(is_array($value)){
@@ -130,8 +132,8 @@ class Base extends Prefab
 
     public function run()
     {
-        if (!$this->env("APP.CONFIGURED")){
-            throw new \Exception(Functions::ERROR_NOT_CONFIGURED);
+        if (!$this->env("EFW.CONFIGURED")){
+            throw new \Exception(Messages::BASE_APP_NOT_CONFIGURED);
         }
         $route = Routing::matchroute();
         $this->status(200);
@@ -196,23 +198,7 @@ class Base extends Prefab
 
     }
 
-    private function from_myself(): bool
-    {
-     //   print_r(debug_backtrace() );
-        $env = false;
-        foreach (debug_backtrace() as $item) {
-            if ($item["function"] == "env" && preg_match("/Base\.php$/", $item["file"])) {
-                return true;
-            }
-            if($item["function"] == "env"){
-                $env = true;
-            }
-        }
-        if(!$env){
-            return true;
-        }
-        return false;
-    }
+
 
     public function reroute($route)
     {
@@ -232,7 +218,8 @@ class Base extends Prefab
         $this->set("FILES", $_FILES);
         $this->set("COOKIE", $_COOKIE);
         $this->set("EFW.configured",false);
-        $this->getserverurl();
+        //Routing::get_actual_route();
+        //echo 1;
 
     }
 
@@ -250,20 +237,26 @@ class Base extends Prefab
         } elseif (is_file($config)) {
             $config = require $config;
         } else {
-            throw new \Exception("Config error!");
+            throw new \Exception(Messages::BASE_CONFIG_NOT_VALID);
         }
         foreach ($config as $key => $item) {
 
             if ($this->is_path($key)) {
                 $item = Functions::checkSlash($item);
                 if(!is_dir($item)){
-                    throw new \Exception("Directory is not exists: ".$item);
+                    throw new \Exception(Messages::BASE_FOLDER_NOT_EXISTS);
                 }
             }
             $this->set($key, $item);
         }
+        foreach (self::CONFIG_REQUIREMENT AS $item){
+            if($this->get($item) == ""){
+                throw new \Exception(Messages::BASE_CONFIG_MISSING_REQ);
+            }
+        }
         $this->set("EFW.configured",true);
     }
+   
 }
 
 return Base::instance();

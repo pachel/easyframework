@@ -6,7 +6,7 @@ use Pachel\EasyFrameWork\Interfaces\Route;
 
 final class Routing
 {
-    private static array $ROUTES = [],$LAYOUT = [];
+    private static array $ROUTES = [],$LAYOUT = [],$VARS = [];
 
     public function __construct()
     {
@@ -75,17 +75,27 @@ final class Routing
         }
         return $object;
     }
+    public static function get_actual_route(){
+        if(!isset(self::$VARS["ROUTE"]) || empty(self::$VARS["ROUTE"])) {
 
+            $URI = Base::instance()->env("SERVER.REQUEST_URI");
+            $argv = Base::instance()->env("SERVER.argv");
+            if (empty($URI) && !empty($argv)) {
+                $URI = $argv[1];
+            } else {
+                $URI = self::neg_uri($URI);
+            }
+            self::$VARS["ROUTE"] = $URI;
+            return $URI;
+        }
+        else{
+            return self::$VARS["ROUTE"];
+        }
+    }
     public static function matchroute(): bool|array
     {
         usort(self::$ROUTES, [self::class, "sortroutes"]);
-        $URI = Base::instance()->env("SERVER.REQUEST_URI");
-        $argv = Base::instance()->env("SERVER.argv");
-        if (empty($URI) && !empty($argv)) {
-            $URI = $argv[1];
-        } else {
-            $URI = self::neg_uri($URI);
-        }
+        $URI = self::get_actual_route();
 
         foreach (self::$ROUTES as &$route) {
             $route["path"] = Functions::checkSlash($route["path"]);
@@ -97,10 +107,13 @@ final class Routing
     }
 
     private static function neg_uri($URI){
+        //TODO: MEg kell vizsgálni az URL-t is
         $URI = preg_replace("/\?.*$/", "", $URI);
         $full = Base::instance()->env("SERVER.REQUEST_SCHEME")."://".Base::instance()->env("SERVER.server_name").$URI;
         $d = explode(Base::instance()->env("APP.URL"),$full);
-        $URI = Functions::checkSlash($d[1]);
+        if(count($d)==2){
+            $URI = Functions::checkSlash($d[1]);
+        }
         return $URI;
     }
     private static function get_request_method()

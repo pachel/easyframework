@@ -2,7 +2,8 @@
 
 use PHPUnit\Framework\TestCase;
 use Pachel\EasyFrameWork\Base;
-
+use Pachel\EasyFrameWork\Messages;
+use Pachel\EasyFrameWork\Helpers\MethodInvoker;
 class BaseTest extends TestCase
 {
 
@@ -78,10 +79,102 @@ class BaseTest extends TestCase
         $actual = $t->env("EFW.CONFIGURED");
         $this->assertFalse($actual,"Konfig jelző teszt");
 
-        $this->expectExceptionMessage(\Pachel\EasyFrameWork\Functions::ERROR_NOT_CONFIGURED);
+        $this->expectExceptionMessage(Messages::BASE_CONFIG_NOT_VALID);
+        $t->config("dummy.php");
+
+
+        $this->expectExceptionMessage(Messages::BASE_CONFIG_MISSING_REQ);
+        $t->config([
+            "APP"
+        ]);
+
+        $this->expectExceptionMessage(Messages::BASE_CONFIG_MISSING_REQ);
+        $t->config([
+            "APP"=>[
+                "UI" => ""
+            ]
+        ]);
+        $this->expectExceptionMessage(Messages::BASE_CONFIG_MISSING_REQ);
+        $t->config([
+            "APP"=>[
+                "UI" => "",
+                "LOGS" => ""
+            ]
+        ]);
+
+        $this->expectExceptionMessage(Messages::BASE_APP_NOT_CONFIGURED);
         $t->run();
+    }
+
+    /**
+     * @covers
+     * @return void
+     */
+    public function testset(){
+
+        (new MethodInvoker)->invoke(Base::instance(), 'set', ['APP.TEST',1]);
+        $actual = Base::instance()->env("APP.TEST");
+        $this->assertEquals(1,$actual,"Védett változók írása belűlről");
+    }
+
+    /**
+     * @covers
+     * @return void
+     */
+    public function testis_systemvarialbe(){
+
+        $k = (new MethodInvoker)->invoke(Base::instance(), 'is_systemvarialbe', ['APP.TEST']);
+        $this->assertTrue($k,"Az APP.TEST az systemvar");
+
+        $k = (new MethodInvoker)->invoke(Base::instance(), 'is_systemvarialbe', ['gecet']);
+        $this->assertFalse($k,"A gecet az systemvar");
+
+    }
+
+    /**
+     * @covers
+     * @return void
+     */
+    public function testis_path(){
+
+        $k = (new MethodInvoker)->invoke(Base::instance(), 'is_path', ['APP.VIEWS']);
+        $this->assertTrue($k,"Az APP.VIEWS az könyvtár");
+
+        $k = (new MethodInvoker)->invoke(Base::instance(), 'is_path', ['app.kex']);
+        $this->assertFalse($k,"Az app.kex nem könyvtár");
+
+    }
+
+    /**
+     * @covers
+     * @return void
+     */
+    public function testrun_content(){
+
+        $k = (new MethodInvoker)->invoke(Base::instance(), 'run_content', [""]);
+        $this->assertFalse($k,"Üres route csekk!");
+
+        $k = (new MethodInvoker)->invoke(Base::instance(), 'run_content', [["object"=>function(){
+
+        }]]);
+        $this->assertTrue($k,"Direkt függvény lefut!");
 
 
+        $k = (new MethodInvoker)->invoke(Base::instance(), 'run_content', [["object"=>function(){
+            echo 2;
+        }]]);
+        $actual = $this->getActualOutputForAssertion();
+        $this->assertEquals(2,$actual,"Függvény végrehajtása!");
+    }
 
+    /**
+     * @covers
+     * @return void
+     */
+    public function testsetvars(){
+        $_COOKIE["TESTTTTT"] = 1;
+        (new MethodInvoker)->invoke(Base::instance(), 'setvars', [""]);
+        $actual = Base::instance()->env("COOKIE.TESTTTTT");
+        $this->assertEquals(1,$actual,"Változók mentése appba");
     }
 }

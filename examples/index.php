@@ -6,7 +6,18 @@ use Pachel\EasyFrameWork\Draw;
 use Pachel\EasyFrameWork\Routing;
 
 require_once __DIR__."/../vendor/autoload.php";
-//require_once __DIR__."/config/Routes.php";
+//requ
+//ire_once __DIR__."/config/Routes.php";
+
+
+class TestClass {
+    private function privateMethod(string $txt) {
+        print_r('invoked privateMethod: ' . $txt);
+    }
+}
+
+//(new MethodInvoker)->invoke(new TestClass, 'privateMethod', ['argument_1']);
+
 class SmallController{
     protected Base $app;
     public function __construct($app)
@@ -52,6 +63,7 @@ Routing::get("/",function (){
 
 Routing::postget("dashboard",[SmallController::class,"dashboard"]);
 Routing::get("dashboard/teszt",[SmallController::class,"dashboard2"]);
+Routing::get("teszt",[SmallController::class,"dashboard2"]);
 
 Routing::cli("emailszinkron","SmallController->email_szinkron");
 Routing::cli("run",function (){
