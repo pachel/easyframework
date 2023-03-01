@@ -17,7 +17,7 @@ class Base extends Prefab
     /**
      * Gyári változók, ezeken a felhasználó nem módosíthatja a $this->set() függvénnyel
      */
-    const VAR_READONLY = ["GET", "POST", "SERVER", "COOKIE", "SESSION", "FILES", "EFW","ROUTES","APP","MYSQL","REDIS","STATUS"];
+    const VAR_READONLY = ["GET", "POST", "SERVER", "COOKIE", "SESSION", "FILES", "EFW", "ROUTES", "APP", "MYSQL", "REDIS", "STATUS"];
     /**
      * Ide azok a változók kerülnek majd, amiket gyorsítótárazni kell majd
      */
@@ -25,7 +25,7 @@ class Base extends Prefab
     /**
      * Azok a változók, ahol meg kell nézni, hogy a karakterlánc végén egy perjel legyen
      */
-    const VAR_PATHS = ["app.ui","app.views","app.url","app.logs","app.temp"];
+    const VAR_PATHS = ["app.ui", "app.views", "app.url", "app.logs", "app.temp"];
     /**
      * Ezeket a függvényeket kitiltjuk a temple fájlokból
      */
@@ -47,9 +47,10 @@ class Base extends Prefab
         $this->setvars();
 
     }
+
     private function get($key)
     {
-        if(empty($key)){
+        if (empty($key)) {
             return self::$vars;
         }
         if (!preg_match("/^((.*)\.(.+))|(.+)$/i", $key, $preg)) {
@@ -57,27 +58,25 @@ class Base extends Prefab
         }
 
         if (empty($preg[1])) {
-            if(!isset(self::$vars[strtoupper($preg[0])]) && !isset(self::$vars[$preg[0]])){
-                return null;
+            if (!isset(self::$vars[strtoupper($preg[0])]) && !isset(self::$vars[$preg[0]])) {
+                return "";
             }
-            if($this->is_systemvarialbe($key)) {
+            if ($this->is_systemvarialbe($key)) {
                 return self::$vars[strtoupper($preg[0])];
-            }
-            else{
+            } else {
                 return self::$vars[$preg[0]];
             }
         } else {
-            if(!isset(self::$vars[strtoupper($preg[2])][strtoupper($preg[3])]) && !isset(self::$vars[$preg[2]][$preg[3]])){
-                return null;
+            if (!isset(self::$vars[strtoupper($preg[2])][strtoupper($preg[3])]) && !isset(self::$vars[$preg[2]][$preg[3]])) {
+                return "";
             }
-            if($this->is_systemvarialbe($key)) {
+            if ($this->is_systemvarialbe($key)) {
                 return self::$vars[strtoupper($preg[2])][strtoupper($preg[3])];
-            }
-            else{
+            } else {
                 return self::$vars[$preg[2]][$preg[3]];
             }
         }
-        return null;
+        return "";
     }
 
     private function set($key, $value): void
@@ -91,67 +90,79 @@ class Base extends Prefab
 
         if (empty($preg[1])) {
             if ($this->is_systemvarialbe($key)) {
+                if(is_array($value)){
+                    $v2 = [];
+                    foreach ($value AS $k => $item){
+                        $v2[strtoupper($k)] = $item;
+                    }
+                    $value = $v2;
+                }
                 self::$vars[strtoupper($preg[0])] = $value;
-            }
-            else{
+            } else {
                 self::$vars[$preg[0]] = $value;
             }
         } else {
             if ($this->is_systemvarialbe($key)) {
                 self::$vars[strtoupper($preg[2])][strtoupper($preg[3])] = $value;
-            }
-            else{
+            } else {
                 self::$vars[$preg[2]][$preg[3]] = $value;
             }
         }
 
     }
-    private function is_systemvarialbe($key){
+
+    private function is_systemvarialbe($key)
+    {
+
         if (preg_match("/^" . implode("|", self::VAR_READONLY) . ".*/i", $key)) {
             return true;
         }
         return false;
     }
-    private function is_path($key){
+
+    private function is_path($key)
+    {
         if (preg_match("/^" . implode("|", self::VAR_PATHS) . ".*/i", $key)) {
             return true;
         }
         return false;
     }
+
     public function run()
     {
         $route = Routing::matchroute();
         $this->status(200);
-        if($route){
+        if ($route) {
             $this->run_content(Routing::getlayout());
             $this->status(200);
-            if($this->run_content($route)){
+            if ($this->run_content($route)) {
 
             }
-        }
-        else{
+        } else {
             $this->status(404);
         }
-        if($this->status() != 200){
+        if ($this->status() != 200) {
 
         }
 
         Draw::instance()->generate();
     }
+
     private function run_content($route)
     {
-        if(is_array($route["object"]) && method_exists($route["object"][0],$route["object"][1])){
+        if(empty($route)){
+            return false;
+        }
+
+        if (is_object($route["object"])) {
+            $route["object"]();
+            return true;
+        } elseif (is_array($route["object"]) && method_exists($route["object"][0], $route["object"][1])) {
             $class = new $route["object"][0]($this);
             $method = $route["object"][1];
             $class->$method();
             return true;
-        }
-        elseif (is_object($route["object"])){
-            $route["object"]();
-
-            return true;
-        }
-        else{
+        } else {
             $this->status(404);
             return false;
         }
@@ -160,26 +171,28 @@ class Base extends Prefab
     /**
      * @return mixed
      */
-    public function env(){
+    public function env()
+    {
         $args = func_get_args();
-        if(count($args)==1){
+        if (count($args) == 1) {
             return $this->get($args[0]);
-        }
-        elseif (count($args)==2){
-            $this->set($args[0],$args[1]);
-        }
-        else{
+        } elseif (count($args) == 2) {
+            $this->set($args[0], $args[1]);
+        } else {
 
         }
     }
-    public function status(){
+
+    public function status()
+    {
         $args = func_get_args();
-        if(count($args)==0){
+        if (count($args) == 0) {
             return $this->get("STATUS");
         }
-        $this->set("STATUS",$args[0]);
+        $this->set("STATUS", $args[0]);
 
     }
+
     private function from_myself(): bool
     {
         foreach (debug_backtrace() as $item) {
@@ -192,7 +205,7 @@ class Base extends Prefab
 
     public function reroute($route)
     {
-        header("location:".$this->get("APP.URL").$route);
+        header("location:" . $this->get("APP.URL") . $route);
         exit();
     }
 
@@ -200,7 +213,7 @@ class Base extends Prefab
     {
         $this->set("GET", $_GET);
         $this->set("POST", $_POST);
-        foreach ($_SERVER AS $key=>$value){
+        foreach ($_SERVER as $key => $value) {
             $s2[strtoupper($key)] = $value;
         }
         $this->set("SERVER", $s2);
@@ -214,7 +227,7 @@ class Base extends Prefab
     private function getserverurl(): string
     {
         $self = (string)$this->get("SERVER.php_self");
-      //  echo $self;
+        //  echo $self;
         return $self;
     }
 
@@ -228,7 +241,8 @@ class Base extends Prefab
             throw new \Exception("Config error!");
         }
         foreach ($config as $key => $item) {
-            if($this->is_path($key)){
+
+            if ($this->is_path($key)) {
                 $item = Functions::checkSlash($item);
             }
             $this->set($key, $item);

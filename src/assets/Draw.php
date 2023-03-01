@@ -75,7 +75,9 @@ class Draw extends Prefab
     {
         if (preg_match_all("/\{\{([^\$\}]+)\}\}/", $content, $preg)) {
             foreach ($preg[1] as $index => $varname) {
-                $content = str_replace($preg[0][$index], Base::instance()->env($varname), $content);
+                $variable = Base::instance()->env($varname);
+                $content = str_replace($preg[0][$index], $variable, $content);
+
             }
         }
     }

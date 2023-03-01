@@ -44,7 +44,11 @@ $Auth->authorise(function ($page){
     return true;
 });
 
-Routing::get("/",[SmallController::class,"landing"]);
+Routing::get("/",function (){
+    echo "sa";
+    Draw::template("layout.index.php");
+});
+/*
 Routing::postget("dashboard",[SmallController::class,"dashboard"]);
 Routing::get("dashboard/teszt",[SmallController::class,"dashboard2"]);
 
@@ -54,5 +58,5 @@ Routing::cli("run",function (){
 });
 
 Routing::layout(".*",[SmallController::class,"layout"],"layout.php");
-
+*/
 $Base->run();
