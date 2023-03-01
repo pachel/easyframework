@@ -123,6 +123,8 @@ class Base extends Prefab
         $route = Routing::matchroute();
         $this->status(200);
         if($route){
+            $this->run_content(Routing::getlayout());
+            $this->status(200);
             if($this->run_content($route)){
 
             }
@@ -142,7 +144,6 @@ class Base extends Prefab
             $class = new $route["object"][0]($this);
             $method = $route["object"][1];
             $class->$method();
-
             return true;
         }
         elseif (is_object($route["object"])){

@@ -10,18 +10,21 @@ class Draw extends Prefab
 
     public static function template(string $template)
     {
-        $caller = debug_backtrace()[1];
         $ui = Base::instance()->env("APP.views");
         if (!is_file($ui . $template)) {
             throw new \Exception("Template not found: " . $ui . $template);
         }
-        $route = Routing::matchroute();
-        if ($route["object"][0] != $caller["class"] || $route["object"][1] != $caller["function"]) {
-            throw new \Exception("Permission denied!");
-        }
+        //$route = Routing::matchroute();
         self::$vars["template"] = $ui . $template;
+      //  self::set_layoutscript($template);
     }
+    private static function check_layoutscript(string $template){
+        $path = self::$vars["template"];
+        $content = file_get_contents($path);
+        if(self::haslayout($content,$layout)){
 
+        }
+    }
     public function generate()
     {
         if(!isset(self::$vars["template"]) || empty(self::$vars["template"])){

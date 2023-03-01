@@ -6,7 +6,7 @@ use Pachel\EasyFrameWork\Interfaces\Route;
 
 final class Routing
 {
-    private static array $ROUTES = [];
+    private static array $ROUTES = [],$LAYOUT = [];
 
     public function __construct()
     {
@@ -35,11 +35,20 @@ final class Routing
         self::addroute($path, $object, "cli");
     }
 
-    public static function annex(string $container, array|string|object $object)
+    public static function layout(string $path, array|string|object $object,string $layout)
     {
-        // self::addroute(".*", $object, "get|post");
+        self::$LAYOUT[] = [
+          "path" => $path,
+          "layout" => $layout,
+          "object" => $object
+        ];
     }
-
+    public static function getlayout(){
+        if(!empty(self::$LAYOUT)){
+            return self::$LAYOUT[0];
+        }
+        return null;
+    }
     private static function addroute($path, $object, $method)
     {
         $pathlenght = strlen($path);
@@ -75,27 +84,28 @@ final class Routing
         if (empty($URI) && !empty($argv)) {
             $URI = $argv[1];
         } else {
-            $URI = preg_replace("/\?.*$/", "", $URI);
-            $URI = Functions::checkSlash($URI);
+            $URI = self::neg_uri($URI);
         }
 
         foreach (self::$ROUTES as &$route) {
-
             $route["path"] = Functions::checkSlash($route["path"]);
-         //   echo $URI . "\n";
-          //  echo $route["path"] . "\n";
-            if (preg_match(">^.*" . $route["path"] . "$>", preg_replace("#([^:])//#", "$1/", $URI)) && preg_match("/" . self::get_request_method() . "/i", $route["method"])) {
+            if (preg_match(">^" . $route["path"] . "$>", preg_replace("#([^:])//#", "$1/", $URI)) && preg_match("/" . self::get_request_method() . "/i", $route["method"])) {
                 return $route;
             }
         }
         return false;
     }
 
-
+    private static function neg_uri($URI){
+        $URI = preg_replace("/\?.*$/", "", $URI);
+        $full = Base::instance()->env("SERVER.REQUEST_SCHEME")."://".Base::instance()->env("SERVER.server_name").$URI;
+        $d = explode(Base::instance()->env("APP.URL"),$full);
+        $URI = Functions::checkSlash($d[1]);
+        return $URI;
+    }
     private static function get_request_method()
     {
         $method = Base::instance()->env("SERVER.REQUEST_METHOD");
-        echo $method;
         if (empty($method)) {
             return "CLI";
         }
@@ -112,4 +122,5 @@ final class Routing
         return strlen($b["path"]) - strlen($a["path"]);
 
     }
+
 }

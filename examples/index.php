@@ -26,6 +26,9 @@ class SmallController{
     public function email_szinkron(){
         echo "cli";
     }
+    public function layout(){
+        $this->app->env("layout",1);
+    }
     public function landing(){
 
         $this->app->env("kex","DASHBOARD1");
@@ -36,11 +39,10 @@ class SmallController{
 Base::instance()->config(__DIR__ . "/config/App.php");
 $Base = Base::instance();
 $Auth = \Pachel\EasyFrameWork\Auth::instance();
-/*
+
 $Auth->authorise(function ($page){
-   // echo "asdasd";
     return true;
-});*/
+});
 
 Routing::get("/",[SmallController::class,"landing"]);
 Routing::postget("dashboard",[SmallController::class,"dashboard"]);
@@ -51,5 +53,6 @@ Routing::cli("run",function (){
     echo "run";
 });
 
+Routing::layout(".*",[SmallController::class,"layout"],"layout.php");
 
 $Base->run();
