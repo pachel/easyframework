@@ -9,7 +9,10 @@ abstract class ListObject implements \ArrayAccess, \Iterator
     protected $class;
     protected $pointer = 0;
 
-    public function search(array|string $search)
+    public const
+        SEARCH_EQUAL = 1,
+        SEARCH_NOT_EQUAL =2;
+    public function search(array|string $search,$mod = self::SEARCH_EQUAL)
     {
         $return = [];
         foreach ($this->containter as $item) {
@@ -17,12 +20,12 @@ abstract class ListObject implements \ArrayAccess, \Iterator
                 $key = array_keys($search);
                 $method = $key[0];
 
-                if ($item->$method == $search[$key[0]]) {
+                if (($item->$method == $search[$key[0]] && $mod == self::SEARCH_EQUAL) || ($item->$method != $search[$key[0]] && $mod == self::SEARCH_NOT_EQUAL)) {
                     $return[] = $item;
                 }
             } else {
                 foreach ($item as $key => $value) {
-                    if ($value == $search) {
+                    if (($value == $search && $mod == self::SEARCH_EQUAL) || ($value!=$search && $mod == self::SEARCH_NOT_EQUAL)) {
                         $return[] = $item;
                         break;
                     }
@@ -31,7 +34,15 @@ abstract class ListObject implements \ArrayAccess, \Iterator
         }
         return $return;
     }
-
+    public function pop(Route $route):void{
+        $this->containter = array_merge([$route],$this->containter);
+    }
+    public function delete(int $index):void{
+        unset($this->containter[$index]);
+    }
+    public function count():int{
+        return count($this->containter);
+    }
     public function match(array|string $search)
     {
         $return = [];
@@ -119,12 +130,14 @@ abstract class ListObject implements \ArrayAccess, \Iterator
 
 }
 
-abstract class ListObjectItem implements \ArrayAccess
+abstract class ListObjectItem extends \stdClass implements \ArrayAccess
 {
-    public function __construct(array $array)
+
+
+    public function __construct(array|object $array)
     {
         foreach ($array as $key => $value) {
-            $this->$key = $value;
+            $this->{$key} = $value;
         }
     }
 
@@ -138,22 +151,21 @@ abstract class ListObjectItem implements \ArrayAccess
 
     public function offsetGet(mixed $offset): mixed
     {
-        return $this->$offset;
+        return $this->{$offset};
     }
 
     public function offsetSet(mixed $offset, mixed $value): void
     {
-        $this->$offset = $value;
+        $this->{$offset} = $value;
     }
 
     public function offsetUnset(mixed $offset): void
     {
-        unset($this->$offset);
+        unset($this->{$offset});
     }
-
     public function __set(string $name, $value): void
     {
-        $this->$name = $value;
+        $this->{$name} = $value;
     }
 
     public function __get(string $name)

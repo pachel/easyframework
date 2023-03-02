@@ -177,4 +177,16 @@ class BaseTest extends TestCase
         $actual = Base::instance()->env("COOKIE.TESTTTTT");
         $this->assertEquals(1,$actual,"Változók mentése appba");
     }
+
+    /**
+     * @covers
+     * @return void
+     */
+    public function testrun(){
+
+
+    //    Base::instance()->run();
+        //$this->assertEquals(1,$actual,"Változók mentése appba");
+    }
+
 }

@@ -12,14 +12,42 @@ namespace Pachel\EasyFrameWork;
 class Routes extends ListObject
 {
     protected $class = Route::class;
+
+
+    public function matchesroutes():Routes
+    {
+        $URI = Routing::instance()->generate_uri();
+        $METHOD = Routing::instance()->get_request_method();
+        $routes = new Routes();
+        foreach ($this->containter AS $item){
+            if(preg_match("/^".$item->path_to_regex."$/",$URI,$preg) && $METHOD == $item->method){
+                if(is_array($item->url_variables) && count($item->url_variables) == count($preg)-1){
+                    $a = [];
+                    $x=1;
+                    foreach ($item->url_variables AS $name){
+                        $a[]=$preg[$x];
+                        $x++;
+                    }
+                    $item->url_variables = $a;
+                }
+                $routes->push($item);
+            }
+        }
+        return $routes;
+    }
 }
 
 /**
  * @author pachel82@gmail.com
+ * @property string first;
  * @property string path;
+ * @property string path_to_regex;
+ * @property string[] url_variables;
  * @property string template;
  * @property string layout;
  * @property string method;
  * @property mixed object;
  */
-final class Route extends ListObjectItem {}
+final class Route extends ListObjectItem
+{
+}

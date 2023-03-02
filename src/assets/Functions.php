@@ -18,6 +18,12 @@ class Functions
         }
         return $dir . "/";
     }
+    public static function checkSlash2($dir) {
+        if (mb_substr($dir, strlen($dir) - 1, 1) == "/") {
+            return mb_substr($dir,0,mb_strlen($dir)-2);
+        }
+        return $dir;
+    }
     public static function HTTPStatus($num) {
         $http = array(
             100 => 'HTTP/1.1 100 Continue',
@@ -61,7 +67,7 @@ class Functions
             504 => 'HTTP/1.1 504 Gateway Time-out',
             505 => 'HTTP/1.1 505 HTTP Version Not Supported',
         );
-        header($http[$num]);
+       // header($http[$num]);
 
         return
             array(

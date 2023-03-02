@@ -14,7 +14,10 @@ class Base extends Prefab
      * @var array $vars
      */
     private static array $vars;
-    private const CONFIG_REQUIREMENT = ["APP.URL","APP.UI","APP.VIEWS","APP.LOGS"];
+
+    private const CACHE_DIR = __DIR__."/../tmp/cache/";
+
+    private const CONFIG_REQUIREMENT = ["APP.URL","APP.UI","APP.VIEWS","APP.LOGS","APP.CACHE_EXPIRES"];
     /**
      * Gyári változók, ezeken a felhasználó nem módosíthatja a $this->set() függvénnyel
      */
@@ -23,6 +26,8 @@ class Base extends Prefab
      * Ide azok a változók kerülnek majd, amiket gyorsítótárazni kell majd
      */
     const VAR_CACHE = "CACHE";
+
+    public Cache $cache;
     /**
      * Azok a változók, ahol meg kell nézni, hogy a karakterlánc végén egy perjel legyen
      */
@@ -31,7 +36,7 @@ class Base extends Prefab
      * Ezeket a függvényeket kitiltjuk a temple fájlokból
      */
     //const DRAW_FUNCTIONS_FILTER = ["include(.+?)","require","require_once","fopen","file_get_content","file_put_content"];
-
+    private Routes $routes;
     /**
      * PHP 5 allows developers to declare constructor methods for classes.
      * Classes which have a constructor method call this method on each newly-created object,
@@ -135,7 +140,12 @@ class Base extends Prefab
         if (!$this->env("EFW.CONFIGURED")){
             throw new \Exception(Messages::BASE_APP_NOT_CONFIGURED);
         }
-        $route = Routing::matchroute();
+        $this->routes = Routing::instance()->get_matches_routes();
+        $this->run_all_routes();
+
+
+
+        /*
         $this->status(200);
         if ($route) {
             $this->run_content(Routing::getlayout());
@@ -150,22 +160,45 @@ class Base extends Prefab
 
         }
 
-        Draw::instance()->generate();
+        Draw::instance()->generate();*/
+    }
+    private function run_all_routes(){
+        /**
+         * Csak azoknak a rootoknak a futtatása, amikhez nincs template
+         */
+        $torun = $this->routes->search(["template"=>""]);
+        foreach ($torun AS $item){
+            $this->run_content($item);
+        }
+        $torun = $this->routes->search(["template"=>""],Routes::SEARCH_NOT_EQUAL);
+        foreach ($torun AS $item){
+            $this->run_content($item);
+        }
+
     }
 
+    /**
+     * @param Route $route
+     * @return bool
+     */
     private function run_content($route)
     {
         if(empty($route)){
             return false;
         }
-
-        if (is_object($route["object"])) {
-            $route["object"]();
+        if(is_array($route->url_variables)) {
+            $arguments = array_merge([$this], $route->url_variables);
+        }
+        else{
+            $arguments = [$this];
+        }
+        if (is_object($route->object)) {
+            call_user_func($route->object,$this);
             return true;
-        } elseif (is_array($route["object"]) && method_exists($route["object"][0], $route["object"][1])) {
-            $class = new $route["object"][0]($this);
-            $method = $route["object"][1];
-            $class->$method();
+        } elseif (is_array($route->object) && method_exists($route->object[0], $route->object[1])) {
+            $class = new $route->object[0](...$arguments);
+            $method = $route->object[1];
+            $class->{$method}(...$arguments);
             return true;
         } else {
             $this->status(404);
@@ -218,6 +251,8 @@ class Base extends Prefab
         $this->set("FILES", $_FILES);
         $this->set("COOKIE", $_COOKIE);
         $this->set("EFW.configured",false);
+
+        $this->cache = new Cache(self::CACHE_DIR);
         //Routing::get_actual_route();
         //echo 1;
 
@@ -256,7 +291,24 @@ class Base extends Prefab
         }
         $this->set("EFW.configured",true);
     }
-   
+    public function get_loaded_routes():Routes{
+        return $this->routes;
+    }
+    public function __set(string $name, $value): void
+    {
+        $this->env($name,$value);
+    }
+    public function __get(string $name)
+    {
+        return $this->env($name);
+    }
 }
 
+/**
+ * @method void reroute(string $path);
+ * @method mixed env(string $name,mixed $value);
+ * @method Routes get_loaded_routes();
+ * @property  Cache $cache;
+ */
+abstract class BaseAsArgument{}
 //return Base::instance();
