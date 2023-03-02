@@ -10,6 +10,8 @@ class Messages
         BASE_FOLDER_NOT_EXISTS          = "The folder not exists!",
         BASE_CONFIG_MISSING_REQ         = "Missing requirement from config",
 
-        DRAW_TEMPLATE_NOT_FOUND         = "Template not found!";
+        DRAW_TEMPLATE_NOT_FOUND         = "Template not found!",
+
+        ROUTING_PARAMETER_MISSING       = "Parameter missing";
 
 }

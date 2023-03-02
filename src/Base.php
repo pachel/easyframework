@@ -259,4 +259,4 @@ class Base extends Prefab
    
 }
 
-return Base::instance();
+//return Base::instance();
