@@ -167,11 +167,15 @@ class Base extends Prefab
          * Csak azoknak a rootoknak a futtatása, amikhez nincs template
          */
         $torun = $this->routes->search(["template"=>""]);
+
         foreach ($torun AS $item){
+
             $this->run_content($item);
+
         }
         $torun = $this->routes->search(["template"=>""],Routes::SEARCH_NOT_EQUAL);
         foreach ($torun AS $item){
+
             $this->run_content($item);
         }
 

@@ -83,9 +83,9 @@ final class Routing extends Prefab
             if (!file_exists($templatefile)) {
                 throw new \Exception(Messages::DRAW_TEMPLATE_NOT_FOUND);
             }
-            $route["template"] = $templatefile;
+            $route->template = $templatefile;
             //HA view, csak akkor kell a layout paraméter
-            $route["layout"] = $this->get_layout($templatefile);
+            $route->layout = $this->get_layout($templatefile);
         }
         $this->prepare_path_to_regex($route);
         return $route;

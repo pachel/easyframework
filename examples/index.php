@@ -62,11 +62,12 @@ class SmallController{
      */
     public function landing($app){
         $routes = $app->get_loaded_routes();
-        //print_r($routes);
         $app->cache->teszt = [1];
 
-
+        echo "\n-------\n";
         print_r($app->cache->teszt);
+        echo "-------\n";
+
     }
 }
 /*
@@ -92,9 +93,13 @@ Routing::instance()->get("dashboard/{category}/{id}.html",[SmallController::clas
 
 Routing::instance()->cli("email-szinkronok",function (){ echo 1; });
 
-//print_r(Routing::instance()->routes->matchesroutes());
+print_r(Routing::instance()->routes[0]->layout);
 $Base = Base::instance();
 $Base->run();
+
+$item = new \Pachel\EasyFrameWork\Route(["layout"=>1]);
+
+echo $item->layout;
 
 
 /*$Auth = \Pachel\EasyFrameWork\Auth::instance();

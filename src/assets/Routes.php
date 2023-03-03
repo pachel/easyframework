@@ -16,6 +16,7 @@ class Routes extends ListObject
 
     public function matchesroutes():Routes
     {
+        //print_r($this->containter[0]["template"]);
         $URI = Routing::instance()->generate_uri();
         $METHOD = Routing::instance()->get_request_method();
         $routes = new Routes();
@@ -50,4 +51,5 @@ class Routes extends ListObject
  */
 final class Route extends ListObjectItem
 {
+
 }

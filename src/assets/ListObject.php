@@ -4,7 +4,7 @@ namespace Pachel\EasyFrameWork;
 
 abstract class ListObject implements \ArrayAccess, \Iterator
 {
-    protected $containter;
+    protected $containter = [];
 
     protected $class;
     protected $pointer = 0;
@@ -12,26 +12,37 @@ abstract class ListObject implements \ArrayAccess, \Iterator
     public const
         SEARCH_EQUAL = 1,
         SEARCH_NOT_EQUAL =2;
-    public function search(array|string $search,$mod = self::SEARCH_EQUAL)
+    public function search(array|string $search,$mod = self::SEARCH_EQUAL,$only_index = false)
     {
         $return = [];
-        foreach ($this->containter as $item) {
+
+        foreach ($this->containter as $index=>$item) {
             if (is_array($search)) {
                 $key = array_keys($search);
                 $method = $key[0];
-
                 if (($item->$method == $search[$key[0]] && $mod == self::SEARCH_EQUAL) || ($item->$method != $search[$key[0]] && $mod == self::SEARCH_NOT_EQUAL)) {
-                    $return[] = $item;
+                    if($only_index){
+                        $return[] = $index;
+                    }
+                    else {
+                        $return[] = $item;
+                    }
                 }
             } else {
                 foreach ($item as $key => $value) {
                     if (($value == $search && $mod == self::SEARCH_EQUAL) || ($value!=$search && $mod == self::SEARCH_NOT_EQUAL)) {
-                        $return[] = $item;
+                        if($only_index){
+                            $return[] = $index;
+                        }
+                        else {
+                            $return[] = $item;
+                        }
                         break;
                     }
                 }
             }
         }
+       // print_r($return);
         return $return;
     }
     public function pop(Route $route):void{
@@ -130,6 +141,77 @@ abstract class ListObject implements \ArrayAccess, \Iterator
 
 }
 
+abstract class ListObjectItem implements \ArrayAccess
+{
+
+    protected array $container;
+    protected array $keys;
+
+    private int $pointer = 0;
+
+    public function __construct(array|object $array)
+    {
+        if(is_object($array)){
+            foreach ($array->container as $key => $value) {
+                $this->container[$key] = $value;
+
+            }
+        }
+        else {
+            foreach ($array as $key => $value) {
+                $this->container[$key] = $value;
+
+            }
+        }
+    }
+
+    public function offsetExists(mixed $offset): bool
+    {
+        if (isset($this->container[$offset])) {
+            return true;
+        }
+        return false;
+    }
+
+    public function offsetGet(mixed $offset): mixed
+    {
+        return $this->container[$offset];
+    }
+
+    public function offsetSet(mixed $offset, mixed $value): void
+    {
+        if(!isset($this->container[$offset])){
+            $this->keys[] = $offset;
+        }
+        $this->container[$offset] = $value;
+    }
+
+    public function offsetUnset(mixed $offset): void
+    {
+        foreach ($this->keys AS $index => $key){
+            if($key == $offset){
+                unset($this->keys[$index]);
+            }
+        }
+        unset($this->container[$offset]);
+    }
+    public function __set(string $name, $value): void
+    {
+        if(!isset($this->container[$name])){
+            $this->keys[] = $name;
+        }
+        $this->container[$name] = $value;
+    }
+
+    public function __get(string $name)
+    {
+        if(isset($this->container[$name])){
+            return $this->container[$name];
+        }
+        return "";
+    }
+}
+/*
 abstract class ListObjectItem extends \stdClass implements \ArrayAccess
 {
 
@@ -173,3 +255,4 @@ abstract class ListObjectItem extends \stdClass implements \ArrayAccess
         return "";
     }
 }
+*/
