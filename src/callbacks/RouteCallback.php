@@ -10,11 +10,5 @@ use Pachel\EasyFrameWork\Routing;
  */
 final class RouteMethodCallback extends CallbackBase
 {
-    protected $class;
-    protected $arguments;
-    public function __construct()
-    {
-        $this->arguments = func_get_args();
-        $this->class = Routing::instance();
-    }
+
 }

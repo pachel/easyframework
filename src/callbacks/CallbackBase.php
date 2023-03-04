@@ -7,11 +7,17 @@ use Pachel\EasyFrameWork\Helpers\MethodInvoker;
 abstract class CallbackBase
 {
     protected $class = "";
-    protected $arguments;
+    protected $arguments = [];
+
+    public function __construct($class)
+    {
+        $this->class = $class;
+    }
 
     public function __call(string $name, array $arguments)
     {
-        $arguments = array_merge($this->arguments, $arguments);
+     //   $this->class = get_called_class();
+        //$arguments = array_merge($this->arguments, $arguments);
         return $this->class->$name(...$arguments);
 
     }

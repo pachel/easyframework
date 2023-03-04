@@ -13,6 +13,22 @@ class CacheObject extends ListObject
 {
     protected $class = CacheObjectItem::class;
 
+    public function delete_from_names($name)
+    {
+        $delete = null;
+        /**
+         * @var CacheObjectItem $item
+         */
+        foreach ($this->containter AS $index => $item){
+            if ($item->name == $name){
+                $delete = $index;
+                break;
+            }
+        }
+        if($delete>=0){
+            unset($this->containter[$delete]);
+        }
+    }
 }
 
 /**

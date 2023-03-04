@@ -17,7 +17,7 @@ class Base extends Prefab
 
     private const CACHE_DIR = __DIR__."/../tmp/cache/";
 
-    private const CONFIG_REQUIREMENT = ["APP.URL","APP.UI","APP.VIEWS","APP.LOGS","APP.CACHE_EXPIRES"];
+    private const CONFIG_REQUIREMENT = ["APP.URL","APP.UI","APP.VIEWS","APP.LOGS"];
     /**
      * Gyári változók, ezeken a felhasználó nem módosíthatja a $this->set() függvénnyel
      */
@@ -140,43 +140,32 @@ class Base extends Prefab
         if (!$this->env("EFW.CONFIGURED")){
             throw new \Exception(Messages::BASE_APP_NOT_CONFIGURED);
         }
+
         $this->routes = Routing::instance()->get_matches_routes();
+        //print_r($this->routes);
         $this->run_all_routes();
 
+        $View = new View($this->routes);
+        echo $View->show();
 
-
-        /*
-        $this->status(200);
-        if ($route) {
-            $this->run_content(Routing::getlayout());
-            $this->status(200);
-            if ($this->run_content($route)) {
-
-            }
-        } else {
-            $this->status(404);
-        }
-        if ($this->status() != 200) {
-
-        }
-
-        Draw::instance()->generate();*/
     }
     private function run_all_routes(){
+        $run = false;
         /**
          * Csak azoknak a rootoknak a futtatása, amikhez nincs template
          */
         $torun = $this->routes->search(["template"=>""]);
-
         foreach ($torun AS $item){
-
             $this->run_content($item);
-
+            $run = true;
         }
         $torun = $this->routes->search(["template"=>""],Routes::SEARCH_NOT_EQUAL);
         foreach ($torun AS $item){
-
             $this->run_content($item);
+            $run = true;
+        }
+        if(!$run){
+            //$this->env("ERROR.code",404);
         }
 
     }
@@ -255,8 +244,6 @@ class Base extends Prefab
         $this->set("FILES", $_FILES);
         $this->set("COOKIE", $_COOKIE);
         $this->set("EFW.configured",false);
-
-        $this->cache = new Cache(self::CACHE_DIR);
         //Routing::get_actual_route();
         //echo 1;
 
@@ -265,7 +252,7 @@ class Base extends Prefab
     private function getserverurl(): string
     {
         $self = (string)$this->get("SERVER.php_self");
-        //  echo $self;
+
         return $self;
     }
 
@@ -279,7 +266,6 @@ class Base extends Prefab
             throw new \Exception(Messages::BASE_CONFIG_NOT_VALID);
         }
         foreach ($config as $key => $item) {
-
             if ($this->is_path($key)) {
                 $item = Functions::checkSlash($item);
                 if(!is_dir($item)){
@@ -293,6 +279,7 @@ class Base extends Prefab
                 throw new \Exception(Messages::BASE_CONFIG_MISSING_REQ);
             }
         }
+        $this->cache = new Cache(self::CACHE_DIR);
         $this->set("EFW.configured",true);
     }
     public function get_loaded_routes():Routes{

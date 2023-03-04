@@ -67,8 +67,6 @@ class Functions
             504 => 'HTTP/1.1 504 Gateway Time-out',
             505 => 'HTTP/1.1 505 HTTP Version Not Supported',
         );
-       // header($http[$num]);
-
         return
             array(
                 'code' => $num,

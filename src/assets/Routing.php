@@ -38,13 +38,16 @@ final class Routing extends Prefab
 
 
     }
-    private function method(): RouteMethodCallback
+    private function method($type,$path,$object=null): RouteMethodCallback
     {
-        $arguments = func_get_args();
-        $route = $this->get_data_from_arguments($arguments);
+
+        $route = new Route();
+        $route->path = $path;
+        $this->prepare_path_to_regex($route);
+        $route->method = strtoupper($type);
+        $route->object = $object;
         $this->routes->push($route);
-        $arguments = array_merge($arguments);
-        return new RouteMethodCallback(...$arguments);
+        return new RouteMethodCallback($this);
     }
 
     /**
@@ -52,15 +55,22 @@ final class Routing extends Prefab
      * @throws \Exception
      * @example get()->view("layout.php");
      */
-    private function view(): void
+    private function view($template): void
     {
         $this->is_efw_configured();
-        $args = func_get_args();
-        if (count($args) != 4) {
-            throw new \Exception(Messages::ROUTING_PARAMETER_MISSING);
+
+        //print_r($template);
+
+        $templatefile = Base::instance()->env("APP.VIEWS") . $template;
+        if (!file_exists($templatefile)) {
+            throw new \Exception(Messages::DRAW_TEMPLATE_NOT_FOUND);
         }
-        $route = $this->get_data_from_arguments($args);
-        $this->routes[$this->routes->count() - 1] = $route;
+        $this->routes[$this->routes->count() - 1]->template = $templatefile;
+        //HA view, csak akkor kell a layout paraméter
+        $this->routes[$this->routes->count() - 1]->layout = $this->get_layout($templatefile);
+
+
+
     }
 
     private function is_efw_configured()
@@ -100,10 +110,17 @@ final class Routing extends Prefab
         if (preg_match_all("/\{(.+?)\}/", $route->path, $preg)) {
             $route->url_variables = $preg[1];
             $route->path_to_regex = str_replace($preg[0], "##", $route->path);
+            $route->path_to_regex = preg_replace("/([\/\-\{\}\[\]\.\+\*\?\$\^\(\)])/", "\\\\$1",$route->path_to_regex);
+        }
+        else{
+            $route->path_to_regex = preg_replace("/([\/\-\{\}\[\]\.\+\*\?\$\^\(\)])/", "\\\\$1",$route->path);
         }
         //Minden regexes kifejezést ki kell iktatni a kereséshez
-        $route->path_to_regex = preg_replace("/([\/\-\{\}\[\]\.\+\*\?\$\^\(\)])/", "\\\\$1", (empty($route->path_to_regex) ? $route->path : $route->path_to_regex));
+
+
         $route->path_to_regex = str_replace("##", "(.+)", $route->path_to_regex);
+
+
     }
 
     private function get_layout($template): string
@@ -157,6 +174,7 @@ final class Routing extends Prefab
         return $URI;
     }
     public function get_matches_routes():Routes{
+      //  print_r($this->routes);
         return $this->routes->matchesroutes();
     }
     public function generate_uri(): string
