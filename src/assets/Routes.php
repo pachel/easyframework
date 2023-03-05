@@ -21,7 +21,7 @@ class Routes extends ListObject
         $METHOD = Routing::instance()->get_request_method();
         $routes = new Routes();
         foreach ($this->containter AS $item){
-            if(preg_match("/^".$item->path_to_regex."$/",$URI,$preg) && $METHOD == $item->method){
+            if(preg_match("/^".$item->path_to_regex."$/",$URI,$preg) && preg_match("/".$METHOD."/i",$item->method)){
                 if(is_array($item->url_variables) && count($item->url_variables) == count($preg)-1){
                     $a = [];
                     $x=1;
@@ -48,8 +48,10 @@ class Routes extends ListObject
  * @property string layout;
  * @property string method;
  * @property mixed object;
+ * @property mixed return;
+ * @property bool onlyone;
+ * @property string direct;
  */
 final class Route extends ListObjectItem
 {
-
 }

@@ -142,61 +142,120 @@ class Base extends Prefab
         }
 
         $this->routes = Routing::instance()->get_matches_routes();
-        //print_r($this->routes);
-        $this->run_all_routes();
 
-        $View = new View($this->routes);
-        echo $View->show();
+        if(!Auth::instance()->is_authorised($this->routes->find("path")->notequal("*")->get())){
+
+        }
+        else {
+            /*
+            foreach ($this->routes AS $route){
+                echo $route->path."\n";
+                if($route->onlyone){
+                    echo "oo:"."1";
+                }
+            }*/
+
+            $this->run_all_routes();
+
+            //$View = new View($this->routes);
+            //$View->show();
+        }
 
     }
     private function run_all_routes(){
-        $run = false;
-        /**
-         * Csak azoknak a rootoknak a futtatása, amikhez nincs template
-         */
-        $torun = $this->routes->search(["template"=>""]);
-        foreach ($torun AS $item){
-            $this->run_content($item);
-            $run = true;
-        }
-        $torun = $this->routes->search(["template"=>""],Routes::SEARCH_NOT_EQUAL);
-        foreach ($torun AS $item){
-            $this->run_content($item);
-            $run = true;
-        }
-        if(!$run){
-            //$this->env("ERROR.code",404);
-        }
 
+        $torun = $this->routes->find("onlyone")->equal(true)->get();
+        if(!empty($torun)){
+            /**
+             * Csak azokat futtatjuk, ahol az onlyone paraméter be lettállítva
+             */
+            $this->run_routes($torun);
+            $this->set("EFW.onlyone",true);
+
+        }
+        else {
+            /**
+             * Csak azoknak a rootoknak a futtatása, amikhez nincs template
+             */
+            $torun = $this->routes->search(["template" => ""]);
+
+            $this->run_routes($torun);
+            $torun = $this->routes->search(["template" => ""], Routes::SEARCH_NOT_EQUAL);
+            $this->run_routes($torun);
+            $this->set("EFW.onlyone",false);
+        }
     }
 
+    /**
+     * @param Route[] $torun
+     * @return void
+     */
+    private function run_routes(&$torun){
+        foreach ($torun AS &$item){
+            $this->run_content($item);
+            $run = true;
+        }
+    }
     /**
      * @param Route $route
      * @return bool
      */
-    private function run_content($route)
+    use returnObjectArray;
+    private function run_content(&$route)
     {
         if(empty($route)){
             return false;
         }
+
         if(is_array($route->url_variables)) {
             $arguments = array_merge([$this], $route->url_variables);
         }
         else{
             $arguments = [$this];
         }
-        if (is_object($route->object)) {
-            call_user_func($route->object,$this);
-            return true;
-        } elseif (is_array($route->object) && method_exists($route->object[0], $route->object[1])) {
-            $class = new $route->object[0](...$arguments);
-            $method = $route->object[1];
-            $class->{$method}(...$arguments);
-            return true;
-        } else {
-            $this->status(404);
+
+        $object = $this->get_object($route->object);
+
+        if(empty($object)){
             return false;
         }
+        if (!empty($object->className)){
+            $classname = $object->className;
+            $class = new $classname($this);
+            $return = $class->{$object->methodName}(...$arguments);
+            $this->routes->find("path")->equal($route->path)->set(["return"=>$return]);
+            return true;
+        }
+        elseif (!empty($object->methodName)){
+            $return = call_user_func($object->methodName,$this);
+            $this->routes->find("path")->equal($route->path)->set(["return"=>$return]);
+            return true;
+        }
+        elseif (!empty($object->object)){
+            $return = call_user_func_array($object->object,$arguments);
+            $this->routes->find("path")->equal($route->path)->set(["return"=>$return]);
+            return true;
+        }
+        return false;
+        /*
+        if (is_object($route->object)) {
+            $return = call_user_func($route->object,$this);
+            $this->routes->find("path")->equal($route->path)->set(["return"=>$return]);
+            return true;
+        } elseif (is_array($route->object) && method_exists($route->object[0], $route->object[1])) {
+            $class = new $route->object[0]($this);
+            $method = $route->object[1];
+            $return = $class->{$method}(...$arguments);
+            $this->routes->find("path")->equal($route->path)->set(["return"=>$return]);
+            return true;
+        } else {
+            if(preg_match("/(.+)\->(.+)/",$route->object,$preg)){
+                $route->object = [$preg[1],$preg[2]];
+                $this->run_content($route);
+            }
+            $this->status(404);
+            return false;
+        }*/
     }
 
     /**
@@ -291,14 +350,20 @@ class Base extends Prefab
     }
     public function __get(string $name)
     {
+
         return $this->env($name);
     }
+
 }
 
 /**
  * @method void reroute(string $path);
  * @method mixed env(string $name,mixed $value);
  * @method Routes get_loaded_routes();
+ * @property  array POST;
+ * @property  array GET;
+ * @property  array SESSION;
+ * @property  array SERVER;
  * @property  Cache $cache;
  */
 abstract class BaseAsArgument{}

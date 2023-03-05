@@ -6,7 +6,7 @@ return [
       "VIEWs" => __DIR__."/../UI/views/",
       "LOGs" => __DIR__."/logs/",
       "TEMp" => __DIR__."/temp",
-      "CACHE_EXPIRES" => 1
+      "CACHE_EXPIRES" => 10
   ],
     "MYSQL" => [
         "HOST" => "localhost"

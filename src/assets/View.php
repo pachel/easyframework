@@ -1,51 +1,87 @@
 <?php
+
 namespace Pachel\EasyFrameWork;
 
-final class View{
+final class View
+{
 
     private partObjects $parts;
+
     public function __construct(Routes &$routes)
     {
+        $this->parts = new partObjects();
         /**
-         * @var Routes $templates;
+         * @var Routes $templates ;
          */
         $templates = $routes->find("template")->notequal("")->get();
-        if(empty($templates)){
+
+        if (empty($templates)) {
+            $directs = $routes->find("direct")->notequal("")->get();
+            if (!empty($directs)) {
+                $this->generate_direct_content($directs);
+            }
             return;
         }
-        $this->parts = new partObjects();
-        $this->set_content($templates[0]->template,$templates[0]->layout);
+
+        $this->set_content($templates[0]->template, $templates[0]->layout);
     }
-    public function show(){
+
+    /**
+     * @param Route[] $directs
+     * @return void
+     */
+    private function generate_direct_content(&$directs)
+    {
+        foreach ($directs as $direct) {
+            if ($direct->direct == "json") {
+                $data = [
+                    "content" => json_encode($direct->return,JSON_PRETTY_PRINT),
+                    "part_name" => "NOTPART",
+                    "content_type" => "Content-Type: application/json; charset=utf-8"
+                ];
+                $this->parts->push($data);
+            }
+        }
+        //print_r($directs);
+    }
+
+    public function show()
+    {
         /**
          * @var partObjectsItem $one
          * @var partObjectsItem $part
          */
-        if(empty($this->parts)){
+        if (empty($this->parts)) {
             return null;
         }
         $one = $this->parts->find("part_name")->equal("NOTPART")->get();
         $two = $this->parts->find("part_name")->notequal("NOTPART")->get();
-        $content = $one[0]["content"];
-        unset($one);
+        //$content = $one[0]["content"];
+        $one = $one[0];
+        //print_r($this->parts);
         $this->parts->reset();
-        foreach ($two AS $part){
-            $content = preg_replace("/\{\{\\$".$part->part_name."\}\}/i",$part->content,$content);
+        foreach ($two as $part) {
+            $one->content = preg_replace("/\{\{\\$" . $part->part_name . "\}\}/i", $part->content, $one->content);
         }
-        return $content;
+
+       // header($one->content_type);
+        echo  $one->content;
     }
-    private function set_content($template,$layout = null){
+
+    private function set_content($template, $layout = null)
+    {
 
         $content = file_get_contents($template);
         $this->replace_variables($content);
         $this->run_content($content);
-        $this->cut_content($content,$template,$layout);
+        $this->cut_content($content, $template, $layout);
 
-        if(!empty($layout)){
+        if (!empty($layout)) {
             $this->set_content($layout);
         }
     }
-    private function cut_content(&$content,$template,$layout = null)
+
+    private function cut_content(&$content, $template, $layout = null)
     {
 
         if (preg_match_all("~@([a-z_0-9\-]+):(.+)(:[a-z]+@)~misU", $content, $preg, PREG_PATTERN_ORDER)) {
@@ -55,12 +91,13 @@ final class View{
                 $part->content = $preg[2][$index];
                 $part->layout = $layout;
                 $part->template = $template;
+                $part->content_type = "Content-Type: text/html; charset=UTF-8";
                 $this->parts->push($part);
             }
-        }
-        else{
+        } else {
             $part = new partObjectsItem();
             $part->part_name = "NOTPART";
+            $part->content_type = "Content-Type: text/html; charset=UTF-8";
             $part->content = $content;
             $part->layout = $layout;
             $part->template = $template;
@@ -68,7 +105,9 @@ final class View{
         }
         //print_r($this->parts);
     }
-    private function replace_variables(&$content){
+
+    private function replace_variables(&$content)
+    {
         if (preg_match_all("/\{\{([^\$\}]+)\}\}/", $content, $preg)) {
             foreach ($preg[1] as $index => $varname) {
                 $variable = Base::instance()->env($varname);
@@ -76,6 +115,7 @@ final class View{
             }
         }
     }
+
     private function run_content(&$content)
     {
         $vars = Base::instance()->env(null);
@@ -83,9 +123,11 @@ final class View{
         ob_start();
         eval("?>" . $content . "<?php");
         $content = ob_get_clean();
-     }
+    }
 }
-final class partObjects extends ListObject{
+
+final class partObjects extends ListObject
+{
     protected $class = partObjectsItem::class;
 }
 
@@ -94,6 +136,7 @@ final class partObjects extends ListObject{
  * @property string $template;
  * @property string $layout;
  * @property string $content;
+ * @property string $content_type;
  */
 final class partObjectsItem extends ListObjectItem
 {

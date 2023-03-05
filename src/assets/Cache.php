@@ -7,7 +7,7 @@ abstract class CacheBase extends Prefab
     private array $vars;
     private string $CACHE_FILE, $CACHE_DIR, $TMP_DIR;
 
-    public int $expires = 1;
+    public int $expires = 10;
     private CacheObject $cache;
 
     private string $start_hash;
@@ -29,12 +29,12 @@ abstract class CacheBase extends Prefab
     {
         $this->loaded = true;
         $this->chech_dir();
-        $files = scandir($this->CACHE_DIR);
+
         if (is_file($this->CACHE_FILE)) {
             $this->cache = unserialize(file_get_contents($this->CACHE_FILE));
         }
         $this->start_hash = md5(serialize($this->cache));
-        $this->cache->find("timestamp")->smallerthan($this->expires * 60)->cut();
+        $this->cache->find("timestamp")->smallerthan(time()-$this->expires * 60)->cut();
 
         /**
          * @var CacheObjectItem $item
@@ -94,9 +94,12 @@ abstract class CacheBase extends Prefab
 
     }
 
-    private function load($name): mixed
+    private function load($name)
     {
-        $find = $this->cache->search(["name" => $name], ListObject::SEARCH_EQUAL, true);
+        if(!$this->loaded){
+            $this->load_cache();
+        }
+        $find = $this->cache->find("name")->equal($name)->onlyindex();
         if (count($find) == 0) {
             return null;
         } else {

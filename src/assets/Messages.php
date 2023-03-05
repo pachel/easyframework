@@ -12,6 +12,7 @@ class Messages
 
         DRAW_TEMPLATE_NOT_FOUND         = "Template not found!",
 
-        ROUTING_PARAMETER_MISSING       = "Parameter missing";
+        ROUTING_PARAMETER_MISSING       = "Parameter missing",
+        LISTO_PARAMETER_IS_NOT_ARRAY       = "Parameter is't array!";
 
 }

@@ -24,10 +24,11 @@ abstract class ListObject implements \ArrayAccess, \Iterator
         SEARCH_GREATER_THAN = 4,
         SEARCH_REGEX = 4;
 
+    private array $findIndexes = [];
     public function reset(){
         $this->containter = [];
     }
-    public function search(array|string $search, $mod = self::SEARCH_EQUAL, $only_index = false)
+    public function search($search, $mod = self::SEARCH_EQUAL, $only_index = false)
     {
         $return = [];
 
@@ -64,11 +65,23 @@ abstract class ListObject implements \ArrayAccess, \Iterator
             }
         }
         // print_r($return);
+        $this->findIndexes = $return;
         return $return;
     }
 
+    private function set($param){
+        if (!is_array($param)){
+            throw new \Exception(Messages::LISTO_PARAMETER_IS_NOT_ARRAY);
+        }
+        $ret = $this->search([$this->findinfo->name => $this->findinfo->toCompare], $this->findinfo->compare, true);
+        $keys = array_keys($param);
+        foreach ($ret AS $index => $item){
+            $this->containter[$item]->{$keys[0]} = $param[$keys[0]];
+        }
+    }
     public function find(string $name)
     {
+        $this->findIndexes = [];
         $this->findinfo = new finInfo();
         $this->findinfo->name = $name;
         return new findRequestCallBack($this);
@@ -120,7 +133,7 @@ abstract class ListObject implements \ArrayAccess, \Iterator
      * @param int|array[] $index
      * @return void
      */
-    public function delete(int|array $index): void
+    public function delete($index): void
     {
         if (is_array($index)) {
             foreach ($index as $value) {
@@ -180,7 +193,7 @@ abstract class ListObject implements \ArrayAccess, \Iterator
         $this->containter[] = new $classname($array);
     }
 
-    public function offsetExists(mixed $offset): bool
+    public function offsetExists($offset): bool
     {
         if (isset($this->containter[$offset])) {
             return true;
@@ -189,12 +202,12 @@ abstract class ListObject implements \ArrayAccess, \Iterator
     }
 
     #[\ReturnTypeWillChange]
-    public function offsetGet(mixed $offset)
+    public function offsetGet($offset)
     {
         return $this->containter[$offset];
     }
 
-    public function offsetSet(mixed $offset, mixed $value): void
+    public function offsetSet($offset,$value): void
     {
         if (is_array($value)) {
             $this->containter[$offset] = new $this->class($value);
@@ -203,7 +216,7 @@ abstract class ListObject implements \ArrayAccess, \Iterator
         }
     }
 
-    public function offsetUnset(mixed $offset): void
+    public function offsetUnset($offset): void
     {
         unset($this->containter[$offset]);
         $this->reindex();
@@ -268,7 +281,7 @@ abstract class ListObjectItem implements \ArrayAccess
 
     private int $pointer = 0;
 
-    public function __construct(array|object $array = null)
+    public function __construct($array = null)
     {
         if (is_object($array)) {
             foreach ($array->container as $key => $value) {
@@ -284,7 +297,7 @@ abstract class ListObjectItem implements \ArrayAccess
     }
 
 
-    public function offsetExists(mixed $offset): bool
+    public function offsetExists($offset): bool
     {
         if (isset($this->container[$offset])) {
             return true;
@@ -292,12 +305,13 @@ abstract class ListObjectItem implements \ArrayAccess
         return false;
     }
 
-    public function offsetGet(mixed $offset): mixed
+    #[\ReturnTypeWillChange]
+    public function offsetGet($offset)
     {
         return $this->container[$offset];
     }
 
-    public function offsetSet(mixed $offset, mixed $value): void
+    public function offsetSet($offset, $value): void
     {
         if (!isset($this->container[$offset])) {
             $this->keys[] = $offset;
@@ -305,7 +319,7 @@ abstract class ListObjectItem implements \ArrayAccess
         $this->container[$offset] = $value;
     }
 
-    public function offsetUnset(mixed $offset): void
+    public function offsetUnset($offset): void
     {
         foreach ($this->keys as $index => $key) {
             if ($key == $offset) {
@@ -315,7 +329,7 @@ abstract class ListObjectItem implements \ArrayAccess
         unset($this->container[$offset]);
     }
 
-    public function __set(string $name, $value): void
+    public function __set($name, $value): void
     {
         if (!isset($this->container[$name])) {
             $this->keys[] = $name;
@@ -332,53 +346,6 @@ abstract class ListObjectItem implements \ArrayAccess
     }
 }
 
-
-/*
-abstract class ListObjectItem extends \stdClass implements \ArrayAccess
-{
-
-
-    public function __construct(array|object $array)
-    {
-        foreach ($array as $key => $value) {
-            $this->{$key} = $value;
-        }
-    }
-
-    public function offsetExists(mixed $offset): bool
-    {
-        if (property_exists($this, $offset)) {
-            return true;
-        }
-        return false;
-    }
-
-    public function offsetGet(mixed $offset): mixed
-    {
-        return $this->{$offset};
-    }
-
-    public function offsetSet(mixed $offset, mixed $value): void
-    {
-        $this->{$offset} = $value;
-    }
-
-    public function offsetUnset(mixed $offset): void
-    {
-        unset($this->{$offset});
-    }
-    public function __set(string $name, $value): void
-    {
-        $this->{$name} = $value;
-    }
-
-    public function __get(string $name)
-    {
-        return "";
-    }
-}
-*/
-
 /**
  * @method compare2RequestCallBack regex($value_with_compare)
  * @method compare2RequestCallBack equal($value_with_compare)
@@ -386,21 +353,17 @@ abstract class ListObjectItem extends \stdClass implements \ArrayAccess
  * @method compare2RequestCallBack smallerthan($value_with_compare)
  * @method compare2RequestCallBack greaterthan($value_with_compare)
  */
-final class findRequestCallBack extends toCompareBase
-{
-}
+final class findRequestCallBack extends CallbackBase{}
 
 /**
  * @method array    get()
+ * @method void    set(array $set)
  * @method array    onlyindex()
  * @method void     cut()
  * @method findRequestCallBack or($name)
  * @method findRequestCallBack and($name)
  */
-final class compare2RequestCallBack extends toCompareBase
-{
-
-}
+final class compare2RequestCallBack extends CallbackBase{}
 
 
 final class finInfo
@@ -409,7 +372,7 @@ final class finInfo
     public string $toCompare;
     public int $compare;
 }
-
+/*
 abstract class toCompareBase
 {
     protected $arguments;
@@ -423,4 +386,4 @@ abstract class toCompareBase
     {
         return $this->arguments->{$name}(...$arguments);
     }
-}
+}*/

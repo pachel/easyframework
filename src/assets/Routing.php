@@ -2,6 +2,7 @@
 
 namespace Pachel\EasyFrameWork;
 
+use Pachel\EasyFrameWork\Callbacks\generateMethodCallback;
 use Pachel\EasyFrameWork\Callbacks\RouteMethodCallback;
 use Pachel\EasyFrameWork\Route;
 
@@ -15,11 +16,14 @@ final class Routing extends Prefab
 {
     public Routes $routes;
 
-    private const
+    protected const
         METHOD_ALIASES = [
-        "method" => ["get", "post", "cli", "postget"]
+        "method" => ["get", "post", "cli", "postget"],
+        "generate" => ["json"]
     ];
-    private array $vars;
+
+    use MethodAlias;
+    private $vars;
     public function __construct()
     {
         $this->routes = new Routes();
@@ -38,9 +42,11 @@ final class Routing extends Prefab
 
 
     }
-    private function method($type,$path,$object=null): RouteMethodCallback
+    private function onlyone(){
+        $this->routes[$this->routes->count()-1]->onlyone = true;
+    }
+    private function method($type,$path,$object=null)
     {
-
         $route = new Route();
         $route->path = $path;
         $this->prepare_path_to_regex($route);
@@ -55,12 +61,10 @@ final class Routing extends Prefab
      * @throws \Exception
      * @example get()->view("layout.php");
      */
-    private function view($template): void
+    private function view($template)
     {
         $this->is_efw_configured();
-
         //print_r($template);
-
         $templatefile = Base::instance()->env("APP.VIEWS") . $template;
         if (!file_exists($templatefile)) {
             throw new \Exception(Messages::DRAW_TEMPLATE_NOT_FOUND);
@@ -68,11 +72,13 @@ final class Routing extends Prefab
         $this->routes[$this->routes->count() - 1]->template = $templatefile;
         //HA view, csak akkor kell a layout paraméter
         $this->routes[$this->routes->count() - 1]->layout = $this->get_layout($templatefile);
-
-
-
+        return new generateMethodCallback($this);
     }
 
+    private function generate($type){
+        $this->routes[$this->routes->count()-1]->direct = $type;
+        return new generateMethodCallback($this);
+    }
     private function is_efw_configured()
     {
         if (!Base::instance()->env("EFW.CONFIGURED")) {
@@ -132,6 +138,10 @@ final class Routing extends Prefab
             }
             return Base::instance()->env("APP.VIEWS") . $preg[1];
         }
+        else{
+            //TODO: kell csinálni egy olyat, hogy a névből keresse a layoutot
+
+        }
         return "";
     }
 
@@ -143,28 +153,9 @@ final class Routing extends Prefab
         }
         return $method;
     }
-    private function method_alias($name, &$params)
-    {
-        foreach (self::METHOD_ALIASES as $key => $alias) {
-            if (in_array($name, $alias)) {
-                $params = array_merge([$name], $params);
-                return $key;
-            }
-        }
-        return $name;
-    }
 
-    public function __call(string $name, array $arguments)
-    {
-        $name = $this->method_alias($name, $arguments);
-        if (method_exists($this, $name)) {
-            return $this->$name(...$arguments);
-        }
-
-    }
     private function neg_uri($URI)
     {
-        //TODO: MEg kell vizsgálni az URL-t is
         $URI = preg_replace("/\?.*$/", "", $URI);
         $full = Base::instance()->env("SERVER.REQUEST_SCHEME") . "://" . Base::instance()->env("SERVER.server_name") . $URI;
         $d = explode(Base::instance()->env("APP.URL"), $full);
