@@ -51,8 +51,12 @@ final class View
          * @var partObjectsItem $one
          * @var partObjectsItem $part
          */
-        if (empty($this->parts)) {
-            return null;
+
+        /**
+         * Ha nincs feldolgozandó template, akkor nem megyünk tovább
+         */
+        if ($this->parts->count() == 0) {
+            return false;
         }
         $one = $this->parts->find("part_name")->equal("NOTPART")->get();
         $two = $this->parts->find("part_name")->notequal("NOTPART")->get();
@@ -63,9 +67,23 @@ final class View
         foreach ($two as $part) {
             $one->content = preg_replace("/\{\{\\$" . $part->part_name . "\}\}/i", $part->content, $one->content);
         }
+        $this->content_with_header($one);
+        return true;
+    }
 
-       // header($one->content_type);
-        echo  $one->content;
+    /**
+     * @param partObjectsItem $content
+     * @return void
+     */
+    private function content_with_header(&$content){
+        if(is_null($content->content_type)){
+            header('Content-Type:text/html; charset=UTF-8');
+        }
+        else{
+            header($content->content_type);
+            header("Content-Disposition:inline;filename=generated_".time().".json");
+        }
+        echo $content->content;
     }
 
     private function set_content($template, $layout = null)
@@ -120,9 +138,11 @@ final class View
     {
         $vars = Base::instance()->env(null);
         extract($vars);
-        ob_start();
+
+        //TODO: majd le kell kezelni a hibaüzeneteket, de nem itt
         eval("?>" . $content . "<?php");
         $content = ob_get_clean();
+        ob_start();
     }
 }
 

@@ -23,10 +23,18 @@ trait returnObjectArray
     }
 }
 
+/**
+ * @property string $className;
+ * @property string $methodName;
+ * @property object $object;
+ */
 final class objectProperty
 {
+
     public string $className;
+
     public string $methodName;
+
 
     public object $object;
 }

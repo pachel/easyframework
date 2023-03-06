@@ -6,28 +6,32 @@ namespace Pachel\EasyFrameWork;
 
 use Pachel\EasyFrameWork\Routing;
 
-
+//set_error_handler("Pachel\\EasyFrameWork\\errorHandler");
+set_exception_handler("Pachel\\EasyFrameWork\\exceptionHandler");
 class Base extends Prefab
 {
 
     /**
      * @var array $vars
      */
-    private static array $vars;
+    private static $vars;
 
     private const CACHE_DIR = __DIR__."/../tmp/cache/";
 
     private const CONFIG_REQUIREMENT = ["APP.URL","APP.UI","APP.VIEWS","APP.LOGS"];
     /**
-     * Gyári változók, ezeken a felhasználó nem módosíthatja a $this->set() függvénnyel
+     * Gyári változók, ezeken a felhasználó nem módosíthatja a $this->set() függvénnyel, ezek kulcsai mindig nagybetűssé lesznek alakítva
      */
-    const VAR_READONLY = ["GET", "POST", "SERVER", "COOKIE", "SESSION", "FILES", "EFW", "ROUTES", "APP", "MYSQL", "REDIS", "STATUS"];
+    const VAR_READONLY = ["SERVER", "COOKIE", "EFW", "ROUTES", "APP", "MYSQL", "REDIS", "STATUS"];
     /**
      * Ide azok a változók kerülnek majd, amiket gyorsítótárazni kell majd
      */
     const VAR_CACHE = "CACHE";
 
-    public Cache $cache;
+    /**
+     * @var Cache $cache
+     */
+    public $cache;
     /**
      * Azok a változók, ahol meg kell nézni, hogy a karakterlánc végén egy perjel legyen
      */
@@ -36,7 +40,10 @@ class Base extends Prefab
      * Ezeket a függvényeket kitiltjuk a temple fájlokból
      */
     //const DRAW_FUNCTIONS_FILTER = ["include(.+?)","require","require_once","fopen","file_get_content","file_put_content"];
-    private Routes $routes;
+    /**
+     * @var Routes $routes
+     */
+    private $routes;
     /**
      * PHP 5 allows developers to declare constructor methods for classes.
      * Classes which have a constructor method call this method on each newly-created object,
@@ -143,10 +150,14 @@ class Base extends Prefab
 
         $this->routes = Routing::instance()->get_matches_routes();
 
+        /**
+         * Ha az azonosítás sikertelen, akkor küldünk egy
+         */
         if(!Auth::instance()->is_authorised($this->routes->find("path")->notequal("*")->get())){
-
+            $this->send_error(403);
         }
         else {
+
             /*
             foreach ($this->routes AS $route){
                 echo $route->path."\n";
@@ -156,11 +167,18 @@ class Base extends Prefab
             }*/
 
             $this->run_all_routes();
-
-            //$View = new View($this->routes);
-            //$View->show();
+            $View = new View($this->routes);
+            if(!$View->show() && Routing::instance()->get_request_method()!="CLI"){
+                $this->send_error(404);
+            }
         }
 
+    }
+    public function send_error(int $code){
+        ob_clean();
+        $status =  Functions::HTTPStatus($code);
+        header($status["error"]);
+        exit();
     }
     private function run_all_routes(){
 
@@ -178,8 +196,10 @@ class Base extends Prefab
              * Csak azoknak a rootoknak a futtatása, amikhez nincs template
              */
             $torun = $this->routes->search(["template" => ""]);
-
             $this->run_routes($torun);
+            /**
+             * A template-es rootok futtatása
+             */
             $torun = $this->routes->search(["template" => ""], Routes::SEARCH_NOT_EQUAL);
             $this->run_routes($torun);
             $this->set("EFW.onlyone",false);
@@ -193,7 +213,6 @@ class Base extends Prefab
     private function run_routes(&$torun){
         foreach ($torun AS &$item){
             $this->run_content($item);
-            $run = true;
         }
     }
     /**
@@ -203,6 +222,9 @@ class Base extends Prefab
     use returnObjectArray;
     private function run_content(&$route)
     {
+        /**
+         * @var Route $route
+         */
         if(empty($route)){
             return false;
         }
@@ -213,30 +235,12 @@ class Base extends Prefab
         else{
             $arguments = [$this];
         }
+        if($route->before != ""){
+            $this->run_only_functions($route,$arguments,"before");
+        }
 
-        $object = $this->get_object($route->object);
 
-        if(empty($object)){
-            return false;
-        }
-        if (!empty($object->className)){
-            $classname = $object->className;
-            $class = new $classname($this);
-            $return = $class->{$object->methodName}(...$arguments);
-            $this->routes->find("path")->equal($route->path)->set(["return"=>$return]);
-            return true;
-        }
-        elseif (!empty($object->methodName)){
-            $return = call_user_func($object->methodName,$this);
-            $this->routes->find("path")->equal($route->path)->set(["return"=>$return]);
-            return true;
-        }
-        elseif (!empty($object->object)){
-            $return = call_user_func_array($object->object,$arguments);
-            $this->routes->find("path")->equal($route->path)->set(["return"=>$return]);
-            return true;
-        }
-        return false;
+        $this->run_only_functions($route,$arguments);
         /*
         if (is_object($route->object)) {
             $return = call_user_func($route->object,$this);
@@ -257,7 +261,31 @@ class Base extends Prefab
             return false;
         }*/
     }
-
+    private function run_only_functions(&$route,$arguments,$object_name = "object"){
+        $object = $this->get_object($route->{$object_name});
+        if(empty($object)){
+            return false;
+        }
+        /**
+         * HA osztályt hívunk meg
+         */
+        if (!empty($object->className)){
+            $classname = $object->className;
+            $class = new $classname($this);
+            $return = $class->{$object->methodName}(...$arguments);
+            $this->routes->find("path")->equal($route->path)->set(["return"=>$return]);
+            return true;
+        }
+        /**
+         * Névtelen függvény hívása
+         */
+        elseif (!empty($object->object)){
+            $return = call_user_func_array($object->object,$arguments);
+            $this->routes->find("path")->equal($route->path)->set(["return"=>$return]);
+            return true;
+        }
+        return false;
+    }
     /**
      * @return mixed
      */
@@ -360,6 +388,7 @@ class Base extends Prefab
  * @method void reroute(string $path);
  * @method mixed env(string $name,mixed $value);
  * @method Routes get_loaded_routes();
+ * @method void send_error(int $code);
  * @property  array POST;
  * @property  array GET;
  * @property  array SESSION;

@@ -10,12 +10,13 @@ abstract class ListObject implements \ArrayAccess, \Iterator
 
     private const
         METHOD_ALIASES = [
-        "gecet" => ["get", "onlyindex", "cut"],
+        "gecet" => ["get", "onlyindex", "cut","count"],
         "compare" => ["equal", "notequal", "smallerthan", "greaterthan","regex"]
     ];
     protected $class;
     protected $pointer = 0;
 
+    private int $calls = 0;
     private finInfo $findinfo;
     public const
         SEARCH_EQUAL = 1,
@@ -24,7 +25,7 @@ abstract class ListObject implements \ArrayAccess, \Iterator
         SEARCH_GREATER_THAN = 4,
         SEARCH_REGEX = 4;
 
-    private array $findIndexes = [];
+    private int $findcount = 0;
     public function reset(){
         $this->containter = [];
     }
@@ -64,8 +65,8 @@ abstract class ListObject implements \ArrayAccess, \Iterator
                 }
             }
         }
-        // print_r($return);
-        $this->findIndexes = $return;
+         //print_r($return);
+        $this->findcount = count($return);
         return $return;
     }
 
@@ -81,7 +82,7 @@ abstract class ListObject implements \ArrayAccess, \Iterator
     }
     public function find(string $name)
     {
-        $this->findIndexes = [];
+        $this->findcount = 0;
         $this->findinfo = new finInfo();
         $this->findinfo->name = $name;
         return new findRequestCallBack($this);
@@ -115,14 +116,24 @@ abstract class ListObject implements \ArrayAccess, \Iterator
 
     }
 
+    /**
+     * Alias funkció
+     * @param $operation
+     * @return array|void|int
+     */
     private function gecet($operation)
     {
+        //print_r(func_get_args());
         if ($operation == "cut") {
             $ret = $this->search([$this->findinfo->name => $this->findinfo->toCompare], $this->findinfo->compare, true);
             foreach ($ret as $index) {
                 unset($this->containter[$index]);
             }
             $this->reindex();
+        }
+        elseif ($operation == "count"){
+
+            return count($this->search([$this->findinfo->name => $this->findinfo->toCompare], $this->findinfo->compare, true));
         }
         else{
             return $this->search([$this->findinfo->name => $this->findinfo->toCompare], $this->findinfo->compare, ($operation=="onlyindex"?true:false));
@@ -159,6 +170,9 @@ abstract class ListObject implements \ArrayAccess, \Iterator
 
     public function count(): int
     {
+        if($this->calls>0){
+            return $this->gecet("count");
+        }
         return count($this->containter);
     }
 /*
@@ -251,7 +265,7 @@ abstract class ListObject implements \ArrayAccess, \Iterator
     public function __call(string $name, array $arguments)
     {
         $name = $this->method_alias($name, $arguments);
-
+        $this->calls++;
         if (method_exists($this, $name)) {
             return $this->{$name}(...$arguments);
         } else {
@@ -360,6 +374,7 @@ final class findRequestCallBack extends CallbackBase{}
  * @method void    set(array $set)
  * @method array    onlyindex()
  * @method void     cut()
+ * @method int     count()
  * @method findRequestCallBack or($name)
  * @method findRequestCallBack and($name)
  */

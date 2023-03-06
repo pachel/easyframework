@@ -3,7 +3,8 @@
     "description": "Easy Framework",
     "type": "library",
     "autoload": {
-        "classmap": ["src/","examples/"]
+        "classmap": ["src/","examples/"],
+        "files": ["src/assets/ErrorHandler.php"]
     },
     "authors": [
         {

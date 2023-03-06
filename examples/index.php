@@ -1,6 +1,6 @@
 <?php
 session_start();
-
+ob_start();
 use Pachel\EasyFrameWork\Base;
 use Pachel\EasyFrameWork\Routing;
 use Pachel\EasyFrameWork\Auth;
@@ -26,14 +26,16 @@ class SmallController{
     /**
      * @var \Pachel\EasyFrameWork\BaseAsArgument $app;
      */
-    protected  $app;
+    protected $app;
     public function __construct($app)
     {
         $this->app = $app;
     }
     public function authorise($path):bool
     {
-        return true;
+
+        //print_r($path);
+        return false;
     }
     public function dashboard($app,$category,$id){
         echo debug_backtrace()[0]['class']."->".debug_backtrace()[0]['function']."();\n";
@@ -75,8 +77,15 @@ class SmallController{
      * @return array
      */
     public function api($app){
-
-        return $this->app->GET;
+        return $this->app->env(null);
+    }
+    public function cli(){
+        print_r(func_get_args());
+    }
+    public function api_key_check(){
+        if(!isset($this->app->GET["apikey"]) || $this->app->GET["apikey"] != 15487){
+            $this->app->send_error(403);
+        }
     }
 }
 
@@ -86,7 +95,7 @@ Base::instance()->config(__DIR__ . "/config/App.php");
 */
 Base::instance()->config(__DIR__ . "/config/App.php");
 Routing::instance()->get("*",[SmallController::class,"always"])->first();
-Routing::instance()->get("",[SmallController::class,"landing"])->view("layout.index.php");
+Routing::instance()->get("/",[SmallController::class,"landing"])->view("layout.index.php");
 Routing::instance()->get("dashboard/login",[SmallController::class,"dashboard3"])->view("login.php");
 Routing::instance()->get("teszt",[SmallController::class,"dashboard2"])->view("layout.index.php");
 Routing::instance()->get("dashboard/{category}/{id}.html",[SmallController::class,"dashboard"])->view("layout.index.php");
@@ -104,7 +113,10 @@ Routing::instance()->cli("email-szinkronok",function (){ echo 1; });
  * Authorise
  */
 Auth::instance()->policy("deny");
+
 Auth::instance()->allow("login");
+Auth::instance()->allow("teszt");
+Auth::instance()->allow("dashboard/login");
 Auth::instance()->allow("api.php");
 /**
  * Csak a POST|GET path-ra vonatkozik, a cli nincs ellenőrizve
