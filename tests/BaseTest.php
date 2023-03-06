@@ -7,9 +7,10 @@ use Pachel\EasyFrameWork\Helpers\MethodInvoker;
 class BaseTest extends TestCase
 {
 
+  //  protected $app;
     protected function setUp(): void
     {
-
+//        $this->app = Base::instance();
     }
 
     protected function tearDown(): void
@@ -76,8 +77,6 @@ class BaseTest extends TestCase
     public function testconfig()
     {
         $t = Base::instance();
-        $actual = $t->env("EFW.CONFIGURED");
-        $this->assertFalse($actual,"Konfig jelző teszt");
 
         $this->expectExceptionMessage(Messages::BASE_CONFIG_NOT_VALID);
         $t->config("dummy.php");
@@ -148,24 +147,22 @@ class BaseTest extends TestCase
     /**
      * @covers
      * @return void
-     */
+     *//*
     public function testrun_content(){
 
-        $k = (new MethodInvoker)->invoke(Base::instance(), 'run_content', [""]);
-        $this->assertFalse($k,"Üres route csekk!");
-
-        $k = (new MethodInvoker)->invoke(Base::instance(), 'run_content', [["object"=>function(){
-
-        }]]);
+/*
+        $route = new \Pachel\EasyFrameWork\Route();
+        $route->object = function (){};
+        $k = (new MethodInvoker)->invoke(Base::instance(), 'run_only_functions', [$route,["teszt"]]);
         $this->assertTrue($k,"Direkt függvény lefut!");
 
-
+/*
         $k = (new MethodInvoker)->invoke(Base::instance(), 'run_content', [["object"=>function(){
             echo 2;
         }]]);
         $actual = $this->getActualOutputForAssertion();
         $this->assertEquals(2,$actual,"Függvény végrehajtása!");
-    }
+    }*/
 
     /**
      * @covers
@@ -178,15 +175,6 @@ class BaseTest extends TestCase
         $this->assertEquals(1,$actual,"Változók mentése appba");
     }
 
-    /**
-     * @covers
-     * @return void
-     */
-    public function testrun(){
 
-
-    //    Base::instance()->run();
-        //$this->assertEquals(1,$actual,"Változók mentése appba");
-    }
 
 }

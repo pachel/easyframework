@@ -31,10 +31,9 @@ class SmallController{
     {
         $this->app = $app;
     }
-    public function authorise($path):bool
+    public function authorise():bool
     {
 
-        //print_r($path);
         return false;
     }
     public function dashboard($app,$category,$id){
@@ -44,7 +43,7 @@ class SmallController{
     }
     public function dashboard2($app){
         //$this->app->cache->teszt = 1;
-
+        //$this->app->reroute("static.html");
         echo "cache:".$this->app->cache->teszt."\n";
         echo "fromParam: ".$app->teszt;
         echo debug_backtrace()[0]['class']."->".debug_backtrace()[0]['function']."();\n";
@@ -99,7 +98,7 @@ Routing::instance()->get("/",[SmallController::class,"landing"])->view("layout.i
 Routing::instance()->get("dashboard/login",[SmallController::class,"dashboard3"])->view("login.php");
 Routing::instance()->get("teszt",[SmallController::class,"dashboard2"])->view("layout.index.php");
 Routing::instance()->get("dashboard/{category}/{id}.html",[SmallController::class,"dashboard"])->view("layout.index.php");
-Routing::instance()->get("static.html")->view("layout.php");
+Routing::instance()->get("static.html")->view("login.php");
 Routing::instance()->get("login")->view("login.php");
 Routing::instance()->get("ss","SmallController->dashboard2")->view("layout.index.php");
 /**
@@ -107,7 +106,13 @@ Routing::instance()->get("ss","SmallController->dashboard2")->view("layout.index
  * és egy JSON objektumot ad vissza a oldal
  */
 Routing::instance()->postget("api.php",[SmallController::class,"api"])->json()->onlyone();
-Routing::instance()->cli("email-szinkronok",function (){ echo 1; });
+Routing::instance()->cli("email-szinkronok",function ($app){
+    /**
+     * @var \Pachel\EasyFrameWork\BaseAsArgument $app
+     */
+    //print_r(func_get_args());
+
+})->view("cli.php");
 
 /**
  * Authorise
@@ -115,31 +120,14 @@ Routing::instance()->cli("email-szinkronok",function (){ echo 1; });
 Auth::instance()->policy("deny");
 
 Auth::instance()->allow("login");
-Auth::instance()->allow("teszt");
+Auth::instance()->allow("dashboard/*");
 Auth::instance()->allow("dashboard/login");
 Auth::instance()->allow("api.php");
 /**
  * Csak a POST|GET path-ra vonatkozik, a cli nincs ellenőrizve
  */
-Auth::instance()->authorise([SmallController::class,"authorise"]);
+//Auth::instance()->authorise([SmallController::class,"authorise"]);
 
-//print_r(Routing::instance()->routes[0]->layout);
+
 $Base = Base::instance();
 $Base->run();
-
-$item = new \Pachel\EasyFrameWork\Route(["layout"=>1]);
-
-
-
-
-/*$Auth = \Pachel\EasyFrameWork\Auth::instance();
-
-$Auth->authorise(function ($page){
-    return true;
-});*/
-
-
-
-//$Base->env("GT",1);
-
-//$Base->run();

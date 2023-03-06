@@ -15,11 +15,12 @@ final class View
          */
         $templates = $routes->find("template")->notequal("")->get();
 
-        if (empty($templates)) {
+        if (count($templates)==0) {
             $directs = $routes->find("direct")->notequal("")->get();
             if (!empty($directs)) {
                 $this->generate_direct_content($directs);
             }
+
             return;
         }
 
@@ -55,6 +56,7 @@ final class View
         /**
          * Ha nincs feldolgozandó template, akkor nem megyünk tovább
          */
+
         if ($this->parts->count() == 0) {
             return false;
         }
@@ -139,8 +141,15 @@ final class View
         $vars = Base::instance()->env(null);
         extract($vars);
 
-        //TODO: majd le kell kezelni a hibaüzeneteket, de nem itt
-        eval("?>" . $content . "<?php");
+        /**
+         * A lezáratlan php tegek lezárása
+         */
+        if(preg_match_all("/(<\?)|(\?>)/misU",$content,$preg)){
+            if(count($preg[0])%2 != 0){
+                $content.="?>";
+            }
+        }
+        eval("?>".$content."<?php");
         $content = ob_get_clean();
         ob_start();
     }

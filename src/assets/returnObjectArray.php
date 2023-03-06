@@ -3,7 +3,7 @@
 namespace Pachel\EasyFrameWork;
 trait returnObjectArray
 {
-    protected function get_object($object):objectProperty
+    public function get_object($object):objectProperty
     {
         $return = new objectProperty();
         if (is_object($object)) {

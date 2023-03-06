@@ -12,7 +12,7 @@ use Pachel\EasyFrameWork\Callbacks\beforeMethodCallback;
  * @method  \Pachel\EasyFrameWork\Callbacks\RouteMethodCallback cli(string $args, array|string|object $object);
  * @method  \Pachel\EasyFrameWork\Callbacks\RouteMethodCallback postget(string $path, array|string|object $object);
  */
-final class Routing extends Prefab
+class Routing extends Prefab
 {
     public Routes $routes;
 
@@ -23,12 +23,12 @@ final class Routing extends Prefab
     ];
 
     use MethodAlias;
-    private $vars;
+    protected $vars;
     public function __construct()
     {
         $this->routes = new Routes();
     }
-    private function first(){
+    protected function first(){
         /*
         foreach ($this->routes AS $index => $route){
             $this->routes[$index]->first = 0;
@@ -42,18 +42,24 @@ final class Routing extends Prefab
 
 
     }
-    private function before(array|string|object $object){
+
+    /**
+     * @param array|string|object $object
+     * @return beforeMethodCallback
+     */
+    protected function before($object):beforeMethodCallback{
         $this->routes[$this->routes->count()-1]->before = $object;
         return new beforeMethodCallback($this);
     }
-    private function onlyone(){
+    protected function onlyone(){
         $this->routes[$this->routes->count()-1]->onlyone = true;
     }
-    private function method($type,$path,$object=null)
+    protected function method($type,$path,$object=null)
     {
         $route = new Route();
         $route->path = Functions::checkSlash2($path);
-        $this->prepare_path_to_regex($route);
+        $route->path_to_regex = $this->prepare_path_to_regex($route->path,$variables);
+        $route->url_variables = $variables;
         $route->method = strtoupper($type);
         $route->object = $object;
         $this->routes->push($route);
@@ -66,7 +72,7 @@ final class Routing extends Prefab
      * @throws \Exception
      * @example get()->view("layout.php");
      */
-    private function view($template)
+    protected function view($template)
     {
         $this->is_efw_configured();
         //print_r($template);
@@ -80,18 +86,18 @@ final class Routing extends Prefab
         return new generateMethodCallback($this);
     }
 
-    private function generate($type){
+    protected function generate($type){
         $this->routes[$this->routes->count()-1]->direct = $type;
         return new generateMethodCallback($this);
     }
-    private function is_efw_configured()
+    protected function is_efw_configured()
     {
         if (!Base::instance()->env("EFW.CONFIGURED")) {
             throw new \Exception(Messages::BASE_APP_NOT_CONFIGURED);
         }
     }
 
-    private function get_data_from_arguments($args)
+    protected function get_data_from_arguments($args)
     {
         $route = new Route([
             "path" => ($args[1] == "*" ? "*" : Functions::checkSlash2($args[1])),
@@ -108,36 +114,36 @@ final class Routing extends Prefab
             //HA view, csak akkor kell a layout paraméter
             $route->layout = $this->get_layout($templatefile);
         }
-        $this->prepare_path_to_regex($route);
+        $route->path_to_regex = $this->prepare_path_to_regex($route->path,$variables);
+        $route->url_variables = $variables;
         return $route;
     }
 
-    private function prepare_path_to_regex(Route &$route)
+    public function prepare_path_to_regex($path,&$url_variables = null):string
     {
-        //TODO:Publikra kell állítnai, és a visszatérési értékben kell átadni a regexes kifejezésts, hogy az AUTH-ban is lehessen használni
-        if ($route->path == "*") {
-            $route->path_to_regex = ".*";
-            return;
+        if ($path == "*") {
+            return ".*";
         }
-        $route->path_to_regex = str_replace("*","%",$route->path);
-        if (preg_match_all("/\{(.+?)\}/", $route->path, $preg)) {
-            $route->url_variables = $preg[1];
-            $route->path_to_regex = str_replace($preg[0], "##", ($route->path_to_regex!=""?$route->path_to_regex:$route->path));
-            $route->path_to_regex = preg_replace("/([\/\-\{\}\[\]\.\+\*\?\$\^\(\)])/", "\\\\$1",$route->path_to_regex);
+        $path_to_regex = str_replace("*","%",$path);
+
+        if (preg_match_all("/\{(.+?)\}/", $path, $preg)) {
+            $url_variables = $preg[1];
+            $path_to_regex = str_replace($preg[0], "##", ($path_to_regex!=""?$path_to_regex:$path));
+            $path_to_regex = preg_replace("/([\/\-\{\}\[\]\.\+\*\?\$\^\(\)])/", "\\\\$1",$path_to_regex);
         }
         else{
-            $route->path_to_regex = preg_replace("/([\/\-\{\}\[\]\.\+\*\?\$\^\(\)])/", "\\\\$1",($route->path_to_regex!=""?$route->path_to_regex:$route->path));
+            $path_to_regex = preg_replace("/([\/\-\{\}\[\]\.\+\*\?\$\^\(\)])/", "\\\\$1",($path_to_regex!=""?$path_to_regex:$path));
         }
 
         //Minden regexes kifejezést ki kell iktatni a kereséshez
 
 
-        $route->path_to_regex = str_replace(["##","%"], ["(.+)",".*"], $route->path_to_regex);
+        $path_to_regex = str_replace(["##","%"], ["(.+)",".*"], $path_to_regex);
 //        echo $route->path_to_regex."\n";
-
+        return $path_to_regex;
     }
 
-    private function get_layout($template): string
+    protected function get_layout($template): string
     {
         $content = file_get_contents($template);
         if (preg_match("/<!\-\-layout:(.+)\-\->/i", $content, $preg)) {
@@ -162,7 +168,7 @@ final class Routing extends Prefab
         return $method;
     }
 
-    private function neg_uri($URI)
+    protected function neg_uri($URI)
     {
         $URI = preg_replace("/\?.*$/", "", $URI);
         $full = Base::instance()->env("SERVER.REQUEST_SCHEME") . "://" . Base::instance()->env("SERVER.server_name") . $URI;
@@ -173,6 +179,9 @@ final class Routing extends Prefab
         return $URI;
     }
     public function get_matches_routes():Routes{
+        //ob_clean();
+       // echo Base::instance()->env("SERVER.REQUEST_URI");
+
         return $this->routes->matchesroutes();
     }
     public function generate_uri(): string
@@ -182,7 +191,12 @@ final class Routing extends Prefab
             $URI = Base::instance()->env("SERVER.REQUEST_URI");
             $argv = Base::instance()->env("SERVER.argv");
             if (empty($URI) && !empty($argv)) {
-                $URI = $argv[1];
+                if(count($argv) == 1){
+                    $URI = "";
+                }
+                else {
+                    $URI = $argv[1];
+                }
             } else {
                 $URI = $this->neg_uri($URI);
             }

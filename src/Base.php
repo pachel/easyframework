@@ -136,6 +136,7 @@ class Base extends Prefab
 
     private function is_path($key)
     {
+
         if (preg_match("/^" . implode("|", self::VAR_PATHS) . ".*/i", $key)) {
             return true;
         }
@@ -352,12 +353,17 @@ class Base extends Prefab
         } else {
             throw new \Exception(Messages::BASE_CONFIG_NOT_VALID);
         }
-        foreach ($config as $key => $item) {
-            if ($this->is_path($key)) {
-                $item = Functions::checkSlash($item);
-                if(!is_dir($item)){
-                    throw new \Exception(Messages::BASE_FOLDER_NOT_EXISTS);
+
+
+        foreach ($config as $key => &$item) {
+            foreach ($item AS $key2 =>&$item2) {
+                if ($this->is_path($key.".".$key2)) {
+                    $item2 = Functions::checkSlash($item2);
+                    if (!is_dir($item2) && $key2!="URL") {
+                        throw new \Exception(Messages::BASE_FOLDER_NOT_EXISTS);
+                    }
                 }
+
             }
             $this->set($key, $item);
         }

@@ -83,13 +83,20 @@ function exceptionHandler($exception) {
     //_log($msg);
     $msg = str_pad("",150,"-")."\n\n".$msg."\n";
     //print_r($msg);
-
     ob_clean();
     _log($msg);
-    Base::instance()->send_error(500);
+    if(Base::instance()->env("APP.TEST")){
+        print_r($msg);
+    }
+    else {
+        Base::instance()->send_error(500);
+    }
 }
 if (!function_exists("_log")) {
     function _log($text) {
+        if(!is_dir(Base::instance()->env("APP.LOGS"))){
+            return false;
+        }
         $logfile = Base::instance()->env("APP.LOGS")."/error.log";
         if (!file_exists($logfile)) {
             touch($logfile);
@@ -102,6 +109,7 @@ if (!function_exists("_log")) {
             shell_exec("chmod -R 0777 \"".$logfile."\"");
         }
         file_put_contents($logfile, "[" . date("Y-m-d H:i:s") . "]" . $text . "\n".file_get_contents($logfile));
+        return true;
     }
 
 }

@@ -36,8 +36,7 @@ class Auth extends Prefab
 
     public function allow($path)
     {
-
-        $this->allowedSitesList->push(["path" => $path]);
+        $this->allowedSitesList->push(["path" => $path, "path_to_regex" => Routing::instance()->prepare_path_to_regex($path)]);
     }
 
     public function deny()
@@ -63,46 +62,75 @@ class Auth extends Prefab
      */
     private function is_authorised($routes): bool
     {
-        if(!$this->enabled){
+
+        if (!$this->enabled) {
             return true;
         }
         /**
          * Ha nincs beállítva hitelesítő metódus, akkor nem kell hitelesíteni
          */
         $method = $this->get_object($this->autorise_function);
-        if (empty($method)){
+        if (empty($method)) {
             return true;
         }
 
-        if(count($routes)==0){
+        if (count($routes) == 0) {
             return true;
         }
         /**
          * A CLI kéréseket nem kell autorizálni
          */
-        if($routes[0]->method == "CLI"){
+        if ($routes[0]->method == "CLI") {
             return true;
         }
         /**
          * Ha több template van betöltve, akkor dobumnt egy hibát
          */
-        if(count($routes)>1){
+        if (count($routes) > 1) {
             //TODO: Üzi kell
             throw new \Exception("");
         }
 
         /**
          * Ha van talált oldal, az jó
+         * @var SiteObject $item
          */
-        if($this->allowedSitesList->find("path")->equal($routes[0]->path)->count()>0){
-            return true;
+        foreach ($this->allowedSitesList as $item) {
+            if (preg_match("/^" . $item->path_to_regex . "$/", $routes[0]->path)) {
+                return true;
+            }
         }
 
         //TODO: AUTH FÜGGVÉNYT LE KELL FUTTATNI
+        return $this->run_autorise_function($routes[0]->path);
 
-        return false;
     }
 
+    private function run_autorise_function($path)
+    {
+        $object = Base::instance()->get_object($this->autorise_function);
+
+        if(empty($object)){
+            return false;
+        }
+
+        /**
+         * HA osztályt hívunk meg
+         */
+        if (!empty($object->className)){
+            $classname = $object->className;
+            $class = new $classname(Base::instance());
+            return $class->{$object->methodName}($path);
+        }
+        /**
+         * Névtelen függvény hívása
+         */
+        elseif (!empty($object->object)){
+            $arguments = [Base::instance(),$path];
+            return call_user_func_array($object->object,$arguments);
+        }
+        return false;
+    }
 }
 
 final class SiteList extends ListObject
@@ -112,6 +140,7 @@ final class SiteList extends ListObject
 
 /**
  * @property string path
+ * @property string path_to_regex
  */
 final class SiteObject extends ListObjectItem
 {

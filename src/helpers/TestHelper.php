@@ -5,7 +5,7 @@ namespace Pachel\EasyFrameWork\Helpers;
 final class MethodInvoker
 {
     public function invoke($object, string $methodName, array $args=[]) {
-        $privateMethod = $this->getMethod(get_class($object), $methodName);
+        $privateMethod = $this->getMethod((is_object($object)?get_class($object):$object), $methodName);
 
         return $privateMethod->invokeArgs($object, $args);
     }
@@ -14,7 +14,7 @@ final class MethodInvoker
         $class = new \ReflectionClass($object);
         $method = $class->getProperty($methodName);
         $method->setAccessible(true);
-        return $method->getValue($class);
+        return $method->getValue($object);
     }
 
     private function getMethod(string $className, string $methodName) {
