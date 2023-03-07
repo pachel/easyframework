@@ -6,7 +6,9 @@ echo $kex;
 
 $x=0;
 ?>
-
+<pre>
+    <code><?=$code?></code>
+</pre>
 :CONTENt@
 @js:
 <h2>js</h2>

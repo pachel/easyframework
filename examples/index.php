@@ -46,14 +46,8 @@ class SmallController{
 
     }
     public function dashboard2($app){
-        //$this->app->cache->teszt = 1;
-        //$this->app->reroute("static.html");
-        echo "cache:".$this->app->cache->teszt."\n";
-        echo "fromParam: ".$app->teszt;
-        echo debug_backtrace()[0]['class']."->".debug_backtrace()[0]['function']."();\n";
-        $app->kex = 1;
-
-
+        $t = new CodeFormater();
+        $this->app->code = $t->php(file_get_contents(__DIR__."/index.php"));
     }
     public function email_szinkron(){
         echo debug_backtrace()[0]['class']."->".debug_backtrace()[0]['function']."();\n";

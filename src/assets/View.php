@@ -149,6 +149,7 @@ final class View
                 $content.="?>";
             }
         }
+        //TODO:code tagek beépítése
         eval("?>".$content."<?php");
         $content = ob_get_clean();
         ob_start();

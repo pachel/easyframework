@@ -80,15 +80,14 @@ function exceptionHandler($exception) {
         $exception->getFile(),
         $exception->getLine()
     );
-    //_log($msg);
     $msg = str_pad("",150,"-")."\n\n".$msg."\n";
-    //print_r($msg);
-    ob_clean();
-    _log($msg);
-    if(Base::instance()->env("APP.TEST")){
+    if(Base::instance()->env("APP.TEST") || Base::instance()->env("APP.LOGS")==""){
+        echo "<pre>";
         print_r($msg);
+        echo "</pre>";
     }
-    else {
+    else{
+        _log($msg);
         Base::instance()->send_error(500);
     }
 }

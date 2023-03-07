@@ -358,7 +358,7 @@ class Base extends Prefab
             foreach ($item AS $key2 =>&$item2) {
                 if ($this->is_path($key.".".$key2)) {
                     $item2 = Functions::checkSlash($item2);
-                    if (!is_dir($item2) && $key2!="URL") {
+                    if (!is_dir($item2) && strtoupper($key2)!="URL") {
                         throw new \Exception(Messages::BASE_FOLDER_NOT_EXISTS);
                     }
                 }
