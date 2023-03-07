@@ -199,7 +199,7 @@ class RoutingTest extends TestCase
         $Routingtest = new \Pachel\EasyFrameWork\Tests\RoutingTest();
 
         $URI = "teszt2";
-        $_SERVER["REQUEST_URI"] = "/easyframe/examples/".$URI;
+        $_SERVER["REQUEST_URI"] = "/easyframework/examples/".$URI;
         $_SERVER["SERVER_NAME"] = "localhost";
         $_SERVER["REQUEST_METHOD"] = "GET";
         $_SERVER["ARGV"] = [];
@@ -232,7 +232,7 @@ class RoutingTest extends TestCase
         $Routingtest = new \Pachel\EasyFrameWork\Tests\RoutingTest();
 
         $URI = "teszt2";
-        $_SERVER["REQUEST_URI"] = "/easyframe/examples/".$URI;
+        $_SERVER["REQUEST_URI"] = "/easyframework/examples/".$URI;
         $_SERVER["SERVER_NAME"] = "localhost";
         $_SERVER["REQUEST_METHOD"] = "GET";
         $_SERVER["ARGV"] = [];

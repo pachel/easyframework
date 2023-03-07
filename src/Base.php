@@ -18,7 +18,7 @@ class Base extends Prefab
 
     private const CACHE_DIR = __DIR__."/../tmp/cache/";
 
-    private const CONFIG_REQUIREMENT = ["APP.URL","APP.UI","APP.VIEWS","APP.LOGS"];
+    private const CONFIG_REQUIREMENT = ["APP.URL","APP.UI","APP.VIEWS"];
     /**
      * Gyári változók, ezeken a felhasználó nem módosíthatja a $this->set() függvénnyel, ezek kulcsai mindig nagybetűssé lesznek alakítva
      */

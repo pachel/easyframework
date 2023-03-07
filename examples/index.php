@@ -96,7 +96,7 @@ class SmallController{
 $Base = Base::instance();
 Base::instance()->config(__DIR__ . "/config/App.php");
 */
-Base::instance()->config(__DIR__ . "/config/App.php");
+Base::instance()->config(__DIR__ . "/config/dev_App.php");
 
 require __DIR__."/config/Routes.php";
 
