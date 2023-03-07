@@ -7,17 +7,17 @@ class Auth extends Prefab
 {
     public static array $vars;
 
-    private bool $enabled = false;
-    private string $default_policy = "deny";
+    protected bool $enabled = false;
+    protected string $default_policy = "deny";
 
-    private SiteList $allowedSitesList;
+    protected SiteList $allowedSitesList;
 
-    private $autorise_function;
+    protected $autorise_function;
     protected const
         METHOD_ALIASES = [];
 
     use MethodAlias;
-
+    use returnObjectArray;
     public function __construct()
     {
         $this->allowedSitesList = new SiteList();
@@ -36,7 +36,7 @@ class Auth extends Prefab
 
     public function allow($path)
     {
-        $this->allowedSitesList->push(["path" => $path, "path_to_regex" => Routing::instance()->prepare_path_to_regex($path)]);
+        $this->allowedSitesList->push(["path" => Functions::checkSlash2($path), "path_to_regex" => Routing::instance()->prepare_path_to_regex(Functions::checkSlash2($path))]);
     }
 
     public function deny()
@@ -54,13 +54,13 @@ class Auth extends Prefab
         $this->autorise_function = $object;
     }
 
-    use returnObjectArray;
+
 
     /**
      * @param Route[] $routes
      * @return bool
      */
-    private function is_authorised($routes): bool
+    protected function is_authorised($routes): bool
     {
 
         if (!$this->enabled) {
@@ -88,7 +88,7 @@ class Auth extends Prefab
          */
         if (count($routes) > 1) {
             //TODO: Üzi kell
-            throw new \Exception("");
+            throw new \Exception("",10102);
         }
 
         /**
@@ -106,10 +106,9 @@ class Auth extends Prefab
 
     }
 
-    private function run_autorise_function($path)
+    protected function run_autorise_function($path)
     {
         $object = Base::instance()->get_object($this->autorise_function);
-
         if(empty($object)){
             return false;
         }

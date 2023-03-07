@@ -24,6 +24,14 @@ class Functions
         }
         return $dir;
     }
+    public static function detract_last_dir($dir)
+    {
+        if(!$dirs = mb_strrpos($dir,"/")){
+            return "";
+        }
+        return mb_substr($dir,0,$dirs+1);
+
+    }
     public static function HTTPStatus($num) {
         $http = array(
             100 => 'HTTP/1.1 100 Continue',

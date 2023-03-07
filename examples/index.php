@@ -1,10 +1,11 @@
 <?php
+namespace Pachel\EasyFrameWork;
 session_start();
-ob_start();
+//ob_start();
+
 use Pachel\EasyFrameWork\Base;
 use Pachel\EasyFrameWork\Routing;
 use Pachel\EasyFrameWork\Auth;
-
 require_once __DIR__."/../vendor/autoload.php";
 //requ
 //ire_once __DIR__."/config/Routes.php";
@@ -34,11 +35,14 @@ class SmallController{
     public function authorise():bool
     {
 
-        return false;
+        return true;
     }
     public function dashboard($app,$category,$id){
         echo debug_backtrace()[0]['class']."->".debug_backtrace()[0]['function']."();\n";
         $app->kex = $category."-".$id;
+
+    }
+    public function ss(){
 
     }
     public function dashboard2($app){
@@ -93,40 +97,10 @@ $Base = Base::instance();
 Base::instance()->config(__DIR__ . "/config/App.php");
 */
 Base::instance()->config(__DIR__ . "/config/App.php");
-Routing::instance()->get("*",[SmallController::class,"always"])->first();
-Routing::instance()->get("/",[SmallController::class,"landing"])->view("layout.index.php");
-Routing::instance()->get("dashboard/login",[SmallController::class,"dashboard3"])->view("login.php");
-Routing::instance()->get("teszt",[SmallController::class,"dashboard2"])->view("layout.index.php");
-Routing::instance()->get("dashboard/{category}/{id}.html",[SmallController::class,"dashboard"])->view("layout.index.php");
-Routing::instance()->get("static.html")->view("login.php");
-Routing::instance()->get("login")->view("login.php");
-Routing::instance()->get("ss","SmallController->dashboard2")->view("layout.index.php");
-/**
- * Az api kéréseknél (POST|GET) csak ez az egy metódus fut le,
- * és egy JSON objektumot ad vissza a oldal
- */
-Routing::instance()->postget("api.php",[SmallController::class,"api"])->json()->onlyone();
-Routing::instance()->cli("email-szinkronok",function ($app){
-    /**
-     * @var \Pachel\EasyFrameWork\BaseAsArgument $app
-     */
-    //print_r(func_get_args());
 
-})->view("cli.php");
+require __DIR__."/config/Routes.php";
 
-/**
- * Authorise
- */
-Auth::instance()->policy("deny");
 
-Auth::instance()->allow("login");
-Auth::instance()->allow("dashboard/*");
-Auth::instance()->allow("dashboard/login");
-Auth::instance()->allow("api.php");
-/**
- * Csak a POST|GET path-ra vonatkozik, a cli nincs ellenőrizve
- */
-//Auth::instance()->authorise([SmallController::class,"authorise"]);
 
 
 $Base = Base::instance();

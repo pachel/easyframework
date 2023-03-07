@@ -57,9 +57,7 @@ class Base extends Prefab
      */
     public function __construct()
     {
-
-        $this->setvars();
-
+        $this->set("EFW.configured",false);
     }
 
     private function get($key,$fromself = true)
@@ -331,7 +329,7 @@ class Base extends Prefab
         $this->set("SESSION", (isset($_SESSION) ? $_SESSION : null));
         $this->set("FILES", $_FILES);
         $this->set("COOKIE", $_COOKIE);
-        $this->set("EFW.configured",false);
+
         //Routing::get_actual_route();
         //echo 1;
 
@@ -355,6 +353,7 @@ class Base extends Prefab
         }
 
 
+
         foreach ($config as $key => &$item) {
             foreach ($item AS $key2 =>&$item2) {
                 if ($this->is_path($key.".".$key2)) {
@@ -372,6 +371,7 @@ class Base extends Prefab
                 throw new \Exception(Messages::BASE_CONFIG_MISSING_REQ);
             }
         }
+        $this->setvars();
         $this->cache = new Cache(self::CACHE_DIR);
         $this->set("EFW.configured",true);
     }

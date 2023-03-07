@@ -15,6 +15,7 @@ use Pachel\EasyFrameWork\Callbacks\beforeMethodCallback;
 class Routing extends Prefab
 {
     public Routes $routes;
+    protected string $to_regex_replace;
 
     protected const
         METHOD_ALIASES = [
@@ -23,19 +24,24 @@ class Routing extends Prefab
     ];
 
     use MethodAlias;
+
     protected $vars;
+
     public function __construct()
     {
         $this->routes = new Routes();
+        $this->to_regex_replace = $this->load_to_regex_replace();
     }
-    protected function first(){
+
+    protected function first()
+    {
         /*
         foreach ($this->routes AS $index => $route){
             $this->routes[$index]->first = 0;
         }
         $this->routes[$this->routes->count()-1]->first = 1;
         */
-        $count = $this->routes->count()-1;
+        $count = $this->routes->count() - 1;
         $route = $this->routes[$count];
         $this->routes->delete($count);
         $this->routes->pop($route);
@@ -47,18 +53,22 @@ class Routing extends Prefab
      * @param array|string|object $object
      * @return beforeMethodCallback
      */
-    protected function before($object):beforeMethodCallback{
-        $this->routes[$this->routes->count()-1]->before = $object;
+    protected function before($object): beforeMethodCallback
+    {
+        $this->routes[$this->routes->count() - 1]->before = $object;
         return new beforeMethodCallback($this);
     }
-    protected function onlyone(){
-        $this->routes[$this->routes->count()-1]->onlyone = true;
+
+    protected function onlyone()
+    {
+        $this->routes[$this->routes->count() - 1]->onlyone = true;
     }
-    protected function method($type,$path,$object=null)
+
+    protected function method($type, $path, $object = null)
     {
         $route = new Route();
         $route->path = Functions::checkSlash2($path);
-        $route->path_to_regex = $this->prepare_path_to_regex($route->path,$variables);
+        $route->path_to_regex = $this->prepare_path_to_regex($route->path, $variables);
         $route->url_variables = $variables;
         $route->method = strtoupper($type);
         $route->object = $object;
@@ -86,10 +96,12 @@ class Routing extends Prefab
         return new generateMethodCallback($this);
     }
 
-    protected function generate($type){
-        $this->routes[$this->routes->count()-1]->direct = $type;
+    protected function generate($type)
+    {
+        $this->routes[$this->routes->count() - 1]->direct = $type;
         return new generateMethodCallback($this);
     }
+
     protected function is_efw_configured()
     {
         if (!Base::instance()->env("EFW.CONFIGURED")) {
@@ -114,31 +126,43 @@ class Routing extends Prefab
             //HA view, csak akkor kell a layout paraméter
             $route->layout = $this->get_layout($templatefile);
         }
-        $route->path_to_regex = $this->prepare_path_to_regex($route->path,$variables);
+        $route->path_to_regex = $this->prepare_path_to_regex($route->path, $variables);
         $route->url_variables = $variables;
         return $route;
     }
+    private function load_to_regex_replace(){
+        $to_replace = file_get_contents(__DIR__."/../helpers/to-regex-replace.txt");
+        $s = "";
+        for($x=0;$x<mb_strlen($to_replace);$x++){
+            $char = mb_substr($to_replace,$x,1);
+            $s.='\\'.$char;
 
-    public function prepare_path_to_regex($path,&$url_variables = null):string
+        }
+        return $s;
+    }
+    public function prepare_path_to_regex($path, &$url_variables = null): string
     {
         if ($path == "*") {
             return ".*";
         }
-        $path_to_regex = str_replace("*","%",$path);
+        $to_replace = $this->to_regex_replace;
+
+        $path_to_regex = preg_replace("/\*$/", "%", $path);
 
         if (preg_match_all("/\{(.+?)\}/", $path, $preg)) {
             $url_variables = $preg[1];
-            $path_to_regex = str_replace($preg[0], "##", ($path_to_regex!=""?$path_to_regex:$path));
-            $path_to_regex = preg_replace("/([\/\-\{\}\[\]\.\+\*\?\$\^\(\)])/", "\\\\$1",$path_to_regex);
-        }
-        else{
-            $path_to_regex = preg_replace("/([\/\-\{\}\[\]\.\+\*\?\$\^\(\)])/", "\\\\$1",($path_to_regex!=""?$path_to_regex:$path));
+            $path_to_regex = str_replace($preg[0], "##", ($path_to_regex != "" ? $path_to_regex : $path));
+//            $path_to_regex = preg_replace("/([\/\-\{\}\[\]\.\+\*\?\$\^\(\)\\\\|])/", "\\\\$1", $path_to_regex);
+            $path_to_regex = preg_replace("/([".$to_replace."])/", "\\\\$1", $path_to_regex);
+        } else {
+//            $path_to_regex = preg_replace("/([\/\-\{\}\[\]\.\+\*\?\$\^\(\)\\\\|])/", "\\\\$1", ($path_to_regex != "" ? $path_to_regex : $path));
+            $path_to_regex = preg_replace("/([".$to_replace."])/", "\\\\$1", ($path_to_regex != "" ? $path_to_regex : $path));
         }
 
         //Minden regexes kifejezést ki kell iktatni a kereséshez
 
 
-        $path_to_regex = str_replace(["##","%"], ["(.+)",".*"], $path_to_regex);
+        $path_to_regex = str_replace(["##", "%"], ["(.+)", ".*"], $path_to_regex);
 //        echo $route->path_to_regex."\n";
         return $path_to_regex;
     }
@@ -148,14 +172,38 @@ class Routing extends Prefab
         $content = file_get_contents($template);
         if (preg_match("/<!\-\-layout:(.+)\-\->/i", $content, $preg)) {
             if (!is_file(Base::instance()->env("APP.VIEWS") . $preg[1])) {
-                throw new \Exception("Layout not exists: " . Base::instance()->env("APP.VIEWS") . $preg[1]);
+                throw new \Exception("Layout not exists: " . Base::instance()->env("APP.VIEWS") . $preg[1],10100);
             }
             return Base::instance()->env("APP.VIEWS") . $preg[1];
-        }
-        else{
+        } else {
             //TODO: kell csinálni egy olyat, hogy a névből keresse a layoutot a VIEWS mappában
+            if(!preg_match("/^".$this->prepare_path_to_regex(Base::instance()->env("APP.VIEWS"))."(.*)\/(.+?)\.(.+?)\..*$/",$template,$preg)){
+                return "";
+            }
+            return $this->search_layout_from_name($preg[2],$preg[1]);
 
         }
+        return "";
+    }
+
+    protected function search_layout_from_name($layout,$dir): string
+    {
+        $view = Base::instance()->env("APP.VIEWS");
+        $files = scandir($view.$dir);
+
+        foreach ($files AS $file){
+            if($file == "." || $files == ".."){
+                continue;
+            }
+            if(preg_match("/^".$this->prepare_path_to_regex($layout)."\.[^\.]+$/",$file)){
+                return Functions::checkSlash($view.$dir).$file;
+            }
+        }
+        if($dir!=""){
+            $next = Functions::detract_last_dir($dir);
+            return $this->search_layout_from_name($layout,$next);
+        }
+
         return "";
     }
 
@@ -175,26 +223,30 @@ class Routing extends Prefab
         $d = explode(Base::instance()->env("APP.URL"), $full);
         if (count($d) == 2) {
             $URI = Functions::checkSlash2($d[1]);
+        } else {
+            //  $URI = "";
         }
         return $URI;
     }
-    public function get_matches_routes():Routes{
+
+    public function get_matches_routes(): Routes
+    {
         //ob_clean();
-       // echo Base::instance()->env("SERVER.REQUEST_URI");
+        // echo Base::instance()->env("SERVER.REQUEST_URI");
 
         return $this->routes->matchesroutes();
     }
+
     public function generate_uri(): string
     {
         if (!isset(self::$VARS["ROUTE"]) || empty(self::$VARS["ROUTE"])) {
 
             $URI = Base::instance()->env("SERVER.REQUEST_URI");
             $argv = Base::instance()->env("SERVER.argv");
-            if (empty($URI) && !empty($argv)) {
-                if(count($argv) == 1){
+            if (!empty($argv)) {
+                if (count($argv) == 1) {
                     $URI = "";
-                }
-                else {
+                } else {
                     $URI = $argv[1];
                 }
             } else {

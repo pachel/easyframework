@@ -67,7 +67,7 @@ final class View
         //print_r($this->parts);
         $this->parts->reset();
         foreach ($two as $part) {
-            $one->content = preg_replace("/\{\{\\$" . $part->part_name . "\}\}/i", $part->content, $one->content);
+            $one->content = preg_replace("/\{\{\\$" . $part->part_name . "\}\}/i", (is_null($part->content)?"null":$part->content), (is_null($one->content)?"null":$one->content));
         }
         $this->content_with_header($one);
         return true;

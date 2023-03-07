@@ -13,11 +13,15 @@ trait returnObjectArray
             $return->className = $object[0];
             $return->methodName = $object[1];
 
-        } else {
+        } elseif(is_string($object)) {
             if(preg_match("/(.+)\->(.+)/",$object,$preg)){
                 $return->className = $preg[1];
                 $return->methodName = $preg[2];
             }
+        }
+        else{
+
+            //Base::instance()->send_error();
         }
         return $return;
     }
