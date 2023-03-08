@@ -25,7 +25,7 @@ final class View
             return;
         }
         $this->checkViews($templates[0]);
-       // $this->set_content($templates[0]->template, $templates[0]->layout);
+       //$this->set_content($templates[0]->template, $templates[0]->layout);
     }
 
     /**
@@ -156,6 +156,7 @@ final class View
         echo $content->content;
     }
 
+    #[Deprecated]
     private function set_content($template, $layout = null)
     {
 
