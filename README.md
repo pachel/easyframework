@@ -36,6 +36,7 @@ $App->run();
 ?>
 ````
 ## Config
+
 ### Required parameters
 - APP
   - URL
@@ -45,27 +46,68 @@ $App->run();
 - APP
   - VIEWS
   - LOGS
-### How to access configuration file data?
+### Usage
+#### Example1
 ````
-//Config array
 $config = [
   "APP" => [
-    "URL" => "http://localhost"  
+    "URL" => "http://localhost",  
+    "UI" => "UI FOLDER"  
   ]
 ];
 
-//From youre code
+$App->config($config);
+````
+#### Example2
+config.php
+````
+//Content of your config file
+<?php
+return [
+  "APP" => [
+    "URL" => "http://localhost",  
+    "UI" => "UI FOLDER"  
+  ]
+];
+````
+index.php
+````
+<?php
+$App->config("Your config file's path");
+````
+### How to access configuration file data?
+````
+//From everywhere
 Base::instance()->env("APP.URL");
 
-//From html template
+//From text/html code
 {{APP.URL}}
 
-//From php template
+//From php code
 echo $APP["URL"];
 ````
 
 ## Routing
+Az útvonalakat a Routes osztály segítségével kell létrehozni, de mindenképp a **cofig beállítása** után!!
+### Routes to _GET methods
+````
+//http://yourdomain/
+$Routing = Routes::instance();
+$Routing->get("/")->view("index.html");
+````
+### Routes to _POST methods
+````
+//http://yourdomain/
+$Routing->post("/")->view("index.html");
 
+````
+### Routes to any methods
+````
+//http://yourdomain/
+$Routing->postget("/")->view("index.html");
+````
+### Parameters of post() get() postget() cli()
+#### $path
 
 
 **asdasd**

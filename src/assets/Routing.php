@@ -177,16 +177,17 @@ class Routing extends Prefab
             return Base::instance()->env("APP.VIEWS") . $preg[1];
         } else {
             //TODO: kell csinálni egy olyat, hogy a névből keresse a layoutot a VIEWS mappában
-            if(!preg_match("/^".$this->prepare_path_to_regex(Base::instance()->env("APP.VIEWS"))."(.*)\/(.+?)\.(.+?)\..*$/",$template,$preg)){
+            if(!preg_match("/^".$this->prepare_path_to_regex(Base::instance()->env("APP.VIEWS"))."(.*)\/(.+?)\.(.+?)\.(.*)$/",$template,$preg)){
                 return "";
             }
-            return $this->search_layout_from_name($preg[2],$preg[1]);
+
+            return $this->search_layout_from_name($preg[2],$preg[1],$preg[4]);
 
         }
         return "";
     }
 
-    protected function search_layout_from_name($layout,$dir): string
+    protected function search_layout_from_name($layout,$dir,$ext): string
     {
         $view = Base::instance()->env("APP.VIEWS");
         $files = scandir($view.$dir);
@@ -195,13 +196,13 @@ class Routing extends Prefab
             if($file == "." || $files == ".."){
                 continue;
             }
-            if(preg_match("/^".$this->prepare_path_to_regex($layout)."\.[^\.]+$/",$file)){
+            if(preg_match("/^".$this->prepare_path_to_regex($layout)."\.".$ext."$/",$file)){
                 return Functions::checkSlash($view.$dir).$file;
             }
         }
         if($dir!=""){
             $next = Functions::detract_last_dir($dir);
-            return $this->search_layout_from_name($layout,$next);
+            return $this->search_layout_from_name($layout,$next,$ext);
         }
 
         return "";

@@ -18,7 +18,7 @@ class Base extends Prefab
 
     private const CACHE_DIR = __DIR__."/../tmp/cache/";
 
-    private const CONFIG_REQUIREMENT = ["APP.URL","APP.UI","APP.VIEWS"];
+    private const CONFIG_REQUIREMENT = ["APP.URL","APP.UI"];
     /**
      * Gyári változók, ezeken a felhasználó nem módosíthatja a $this->set() függvénnyel, ezek kulcsai mindig nagybetűssé lesznek alakítva
      */
@@ -370,6 +370,9 @@ class Base extends Prefab
             if($this->get($item) == ""){
                 throw new \Exception(Messages::BASE_CONFIG_MISSING_REQ);
             }
+        }
+        if($this->get("APP.VIews")==""){
+            $this->set("app.views",$this->get("app.ui"));
         }
         $this->setvars();
         $this->cache = new Cache(self::CACHE_DIR);

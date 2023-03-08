@@ -93,7 +93,7 @@ final class View
 
         $content = file_get_contents($template);
         $this->replace_variables($content);
-        $this->run_content($content);
+        $this->run_content($content,$template);
         $this->cut_content($content, $template, $layout);
 
         if (!empty($layout)) {
@@ -136,7 +136,7 @@ final class View
         }
     }
 
-    private function run_content(&$content)
+    private function run_content(&$content,$template = null)
     {
         $vars = Base::instance()->env(null);
         extract($vars);
@@ -149,9 +149,15 @@ final class View
                 $content.="?>";
             }
         }
-        //TODO:code tagek beépítése
-        eval("?>".$content."<?php");
-        $content = ob_get_clean();
+        if(preg_match("/.+?\.php/i",$template)) {
+            eval("?>" . $content . "<?php");
+            $content = ob_get_clean();
+        }
+        else{
+
+        }
+
+
         ob_start();
     }
 }
