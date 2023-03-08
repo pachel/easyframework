@@ -1,6 +1,6 @@
 Layout értéke: {{layout}}
 <h2>content</h2>
-{{$content}}
+<!--[content:content]-->
 {{app.url}}
 <?php
 echo "asdlj";
@@ -35,4 +35,5 @@ echo "asdlj";
 
     </code>
 </pre>
-{{$js}}
+<!--[load:footer.php]-->
+<!--[content:js]-->

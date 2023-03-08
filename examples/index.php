@@ -1,7 +1,7 @@
 <?php
 namespace Pachel\EasyFrameWork;
 session_start();
-//ob_start();
+ob_start();
 
 use Pachel\EasyFrameWork\Base;
 use Pachel\EasyFrameWork\Routing;
@@ -38,7 +38,7 @@ class SmallController{
         return true;
     }
     public function dashboard($app,$category,$id){
-        echo debug_backtrace()[0]['class']."->".debug_backtrace()[0]['function']."();\n";
+       // echo debug_backtrace()[0]['class']."->".debug_backtrace()[0]['function']."();\n";
         $app->kex = $category."-".$id;
 
     }
@@ -47,7 +47,7 @@ class SmallController{
     }
     public function dashboard2($app){
         $t = new CodeFormater();
-        $this->app->code = $t->php(file_get_contents(__DIR__."/index.php"));
+        $this->app->code = $t->php(file_get_contents(__DIR__."/config/App.php"));
     }
     public function email_szinkron(){
         echo debug_backtrace()[0]['class']."->".debug_backtrace()[0]['function']."();\n";
@@ -57,7 +57,7 @@ class SmallController{
     }
     public function always(){
         $this->app->teszt = 2;
-        echo debug_backtrace()[0]['class']."->".debug_backtrace()[0]['function']."();\n";
+      //  echo debug_backtrace()[0]['class']."->".debug_backtrace()[0]['function']."();\n";
     }
 
     /**

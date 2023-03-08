@@ -175,8 +175,14 @@ class Routing extends Prefab
                 throw new \Exception("Layout not exists: " . Base::instance()->env("APP.VIEWS") . $preg[1],10100);
             }
             return Base::instance()->env("APP.VIEWS") . $preg[1];
-        } else {
-            //TODO: kell csinálni egy olyat, hogy a névből keresse a layoutot a VIEWS mappában
+        }
+        elseif (preg_match("/<!\-\-.*\[layout:([a-z0-9_\.\/]+)\].*\-\->/i",$content,$preg)){
+            if (!is_file(Base::instance()->env("APP.VIEWS") . $preg[1])) {
+                throw new \Exception("Layout not exists: " . Base::instance()->env("APP.VIEWS") . $preg[1],10100);
+            }
+            return Base::instance()->env("APP.VIEWS") . $preg[1];
+        }
+        else {
             if(!preg_match("/^".$this->prepare_path_to_regex(Base::instance()->env("APP.VIEWS"))."(.*)\/(.+?)\.(.+?)\.(.*)$/",$template,$preg)){
                 return "";
             }

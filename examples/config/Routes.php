@@ -8,6 +8,8 @@ Routing::instance()->get("teszt",[SmallController::class,"dashboard2"])->view("l
 Routing::instance()->get("dashboard/{category}/{id}.html",[SmallController::class,"dashboard"])->view("layout.index.php");
 Routing::instance()->get("static.html")->view("login.php");
 Routing::instance()->get("login")->view("login.php");
+Routing::instance()->get("multiples")->view("multiples/index.html");
+Routing::instance()->get("withlayouts")->view("multiples/withlayout/inner.html");
 Routing::instance()->get("ss",[SmallController::class,"ss"])->view("login/layout.register.php");
 /**
  * Az api kéréseknél (POST|GET) csak ez az egy metódus fut le,
@@ -36,4 +38,4 @@ Auth::instance()->allow("api.php");
 /**
  * Csak a POST|GET path-ra vonatkozik, a cli nincs ellenőrizve
  */
-Auth::instance()->authorise([SmallController::class,"authorise"]);
+//Auth::instance()->authorise([SmallController::class,"authorise"]);
