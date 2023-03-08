@@ -41,6 +41,8 @@ class Routes extends ListObject
  * @author pachel82@gmail.com
  * @property string first;
  * @property string path;
+ * @property string name;
+ * @property string index;
  * @property string path_to_regex;
  * @property string[] url_variables;
  * @property string template;

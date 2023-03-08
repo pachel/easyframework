@@ -3,6 +3,7 @@ use PHPUnit\Framework\TestCase;
 use Pachel\EasyFrameWork\Base;
 use Pachel\EasyFrameWork\Messages;
 use Pachel\EasyFrameWork\Helpers\MethodInvoker;
+use Pachel\EasyFrameWork\testConfig;
 class RoutingTest extends TestCase
 {
     /**
@@ -56,7 +57,7 @@ class RoutingTest extends TestCase
      * @return void
      */
     public function testonlyone(){
-        $_SERVER["REQUEST_URI"] = "easyframework/examples/teszt";
+        $_SERVER["REQUEST_URI"] = testConfig::dir."/examples/teszt";
         $Routingtest = new \Pachel\EasyFrameWork\Tests\RoutingTest();
         $Routingtest->routes->push(["path"=>"now"]);
         $Routingtest->generate("get")->onlyone();
@@ -199,7 +200,7 @@ class RoutingTest extends TestCase
         $Routingtest = new \Pachel\EasyFrameWork\Tests\RoutingTest();
 
         $URI = "teszt2";
-        $_SERVER["REQUEST_URI"] = "/easyframe/examples/".$URI;
+        $_SERVER["REQUEST_URI"] = "/".testConfig::dir."/examples/".$URI;
         $_SERVER["SERVER_NAME"] = "localhost";
         $_SERVER["REQUEST_METHOD"] = "GET";
         $_SERVER["ARGV"] = [];
@@ -232,7 +233,7 @@ class RoutingTest extends TestCase
         $Routingtest = new \Pachel\EasyFrameWork\Tests\RoutingTest();
 
         $URI = "teszt2";
-        $_SERVER["REQUEST_URI"] = "/easyframe/examples/".$URI;
+        $_SERVER["REQUEST_URI"] = "/".testConfig::dir."/examples/".$URI;
         $_SERVER["SERVER_NAME"] = "localhost";
         $_SERVER["REQUEST_METHOD"] = "GET";
         $_SERVER["ARGV"] = [];

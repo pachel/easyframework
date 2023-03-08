@@ -8,6 +8,7 @@ final class View
 {
 
     private partObjects $parts;
+    protected bool $auth = false;
 
     public function __construct(Routes &$routes)
     {
@@ -15,67 +16,77 @@ final class View
         /**
          * @var Routes $templates ;
          */
-        $templates = $routes->find("template")->notequal("")->get();
-
-        if (count($templates) == 0) {
+        $templates = $routes->find("template")->notequal("")->object();
+        if ($templates->count() == 0) {
             $directs = $routes->find("direct")->notequal("")->get();
             if (count($directs)>0) {
                 $this->generate_direct_content($directs);
             }
             return;
         }
-        $this->checkViews($templates[0]);
+        $this->checkViews($templates);
        //$this->set_content($templates[0]->template, $templates[0]->layout);
     }
 
     /**
-     * @param Route $template
+     * @param Route[] $template
      * @return array
      */
-    protected function checkViews(&$template)
+    protected function checkViews(&$templates)
     {
-        $content = file_get_contents($template->template);
-        //Változókat bele kell tenni
-        //Lefuttatjuk a templatet, hogy a betöltött tartalmak ne kavarjanak be
-        $this->run_content($content,$template->template);
+        foreach ($templates AS $template) {
 
-        /**
-         * HA be betölteni való tartalom, akkor azt ide betöltjük!
-         */
-        $this->hasFileToLoad($content,$template->template);
-        $this->replace_variables($content);
-        /**
-         * Ha nincs layout akkor nincs mit tenni
-         */
-        if($template->layout == ""){
-            $part = new partObjectsItem();
-            $part->part_name = "NOTPART";
-            $part->content = $content;
-            $part->layout = "";
-            $part->template = $template->template;
-            $this->parts->push($part);
-        }
-        /**
-         * HA van layout akkor fel kell szabdalni a cuccot
-         */
-        else{
+            if(Auth::instance()->is_authorised($template)){
+                Base::instance()->run_content($template);
+            }
+            else{
+                continue;
+            }
+            //$this->auth = true;*/
+            $content = file_get_contents($template->template);
+            //A layout hivatkozást ki kell venni a tartalomból, mert már nem kell
+            $content = preg_replace("/<!\-\-.*\[layout:.+\].*\-\->/i", "", $content);
+            //Változókat bele kell tenni
+            //Lefuttatjuk a templatet, hogy a betöltött tartalmak ne kavarjanak be
+            $this->run_content($content, $template->template,$template);
+
             /**
-             * Szétszedjük a tartalmat
+             * HA be betölteni való tartalom, akkor azt ide betöltjük!
              */
-            $this->cut_content($content, $template->template, $template->layout);
-            /**
-             * Innentől a layouttal dolgozunk
-             */
-            $content = file_get_contents($template->layout);
-            $this->replace_variables($content);
             $this->hasFileToLoad($content);
-            $this->run_content($content,$template->layout);
-            $part = new partObjectsItem();
-            $part->part_name = "NOTPART";
-            $part->content = $content;
-            $part->layout = "";
-            $part->template = $template->layout;
-            $this->parts->push($part);
+            $this->replace_variables($content);
+            /**
+             * Ha nincs layout akkor nincs mit tenni
+             */
+            if ($template->layout == "") {
+                $part = new partObjectsItem();
+                $part->part_name = "NOTPART";
+                $part->content = $content;
+                $part->layout = "";
+                $part->template = $template->template;
+                $this->parts->push($part);
+            } /**
+             * HA van layout akkor fel kell szabdalni a cuccot
+             */
+            else {
+                /**
+                 * Szétszedjük a tartalmat
+                 */
+                $this->cut_content($content, $template->template, $template->layout, $template->name);
+                /**
+                 * Innentől a layouttal dolgozunk
+                 */
+                $content = file_get_contents($template->layout);
+                $this->replace_variables($content);
+                $this->hasFileToLoad($content);
+                $this->run_content($content, $template->layout,$template);
+                $part = new partObjectsItem();
+                $part->part_name = "NOTPART";
+                $part->content = $content;
+                $part->layout = "";
+                $part->template = $template->layout;
+                $this->parts->push($part);
+            }
         }
     }
     private function hasFileToLoad(&$content){
@@ -100,6 +111,12 @@ final class View
     private function generate_direct_content(&$directs)
     {
         foreach ($directs as $direct) {
+            if(!Auth::instance()->is_authorised($direct)){
+                $this->auth = false;
+                continue;
+            }
+            $this->auth = true;
+
             if ($direct->direct == "json") {
                 $data = [
                     "content" => json_encode($direct->return, JSON_PRETTY_PRINT),
@@ -111,7 +128,34 @@ final class View
         }
         //print_r($directs);
     }
+    public function show2()
+    {
+        /**
+         * Ha nincs part és van templatet tartalmazó route, akkor bizony nincs hozzáférésünk az oldalhoz
+         */
+        if ($this->parts->count() == 0 && Base::instance()->routes->find("template")->notequal("")->count() == 0) {
+            return false;
+        }
+        if ($this->parts->count() == 0) {
+            Base::instance()->send_error(403);
+        }
 
+        $one = $this->parts->find("part_name")->equal("NOTPART")->get();
+        $two = $this->parts->find("part_name")->notequal("NOTPART")->get();
+        //$content = $one[0]["content"];
+        $one = $one[0];
+        $this->parts->reset();
+        foreach ($two as $part) {
+//            echo $part->part_name."\n";
+            $one->content = preg_replace("/\{\{\\$" . $part->part_name . "\}\}/i", (is_null($part->content) ? "null" : $part->content), (is_null($one->content) ? "null" : $one->content));
+            $one->content = preg_replace("/<!\-\-.*\[content:" . $part->part_name . "\].*\-\->/i", "<!--".$part->part_name."-->".(is_null($part->content) ? "null" : $part->content)."\n<!--end of ".$part->part_name."-->", (is_null($one->content) ? "null" : $one->content));
+        }
+
+        $this->content_with_header($one);
+
+        return true;
+    }
+    #[Deprecated]
     public function show()
     {
         /**
@@ -134,7 +178,7 @@ final class View
         foreach ($two as $part) {
 //            echo $part->part_name."\n";
             $one->content = preg_replace("/\{\{\\$" . $part->part_name . "\}\}/i", (is_null($part->content) ? "null" : $part->content), (is_null($one->content) ? "null" : $one->content));
-            $one->content = preg_replace("/<!\-\-.*\[content:" . $part->part_name . "\].*\-\->/i", "<!--".$part->part_name."-->".(is_null($part->content) ? "null" : $part->content)."<!--end of ".$part->part_name."-->", (is_null($one->content) ? "null" : $one->content));
+            $one->content = preg_replace("/<!\-\-.*\[content:" . $part->part_name . "\].*\-\->/i", "<!--".$part->part_name."-->".(is_null($part->content) ? "null" : $part->content)."\n<!--end of ".$part->part_name."-->", (is_null($one->content) ? "null" : $one->content));
         }
 
         $this->content_with_header($one);
@@ -170,10 +214,19 @@ final class View
         }
     }
 
-    private function cut_content(&$content, $template, $layout = null)
+    private function cut_content(&$content, $template, $layout = null,$name = null)
     {
 
-        if (preg_match_all("~@([a-z_0-9\-]+):(.+)(:[a-z]+@)~misU", $content, $preg, PREG_PATTERN_ORDER)) {
+        if(!is_null($name)){
+            $part = new partObjectsItem();
+            $part->part_name = strtoupper($name);
+            $part->content = $content;
+            $part->layout = $layout;
+            $part->template = $template;
+            $part->content_type = "Content-Type: text/html; charset=UTF-8";
+            $this->parts->push($part);
+        }
+        elseif (preg_match_all("~@([a-z_0-9\-]+):(.+)(:[a-z]+@)~misU", $content, $preg, PREG_PATTERN_ORDER)) {
             foreach ($preg[1] as $index => $item) {
                 $part = new partObjectsItem();
                 $part->part_name = strtoupper($item);
@@ -219,8 +272,12 @@ final class View
         }
     }
 
-    private function run_content(&$content, $template = null)
+    private function run_content(&$content, $template = null,Route $route = null)
     {
+
+
+
+
         $vars = Base::instance()->env(null);
         extract($vars);
         /**

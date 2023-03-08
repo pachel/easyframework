@@ -57,7 +57,7 @@ class Auth extends Prefab
 
 
     /**
-     * @param Route[] $routes
+     * @param Route $routes
      * @return bool
      */
     protected function is_authorised($routes): bool
@@ -74,35 +74,35 @@ class Auth extends Prefab
             return true;
         }
 
-        if (count($routes) == 0) {
+        if (empty($routes)) {
             return true;
         }
         /**
          * A CLI kéréseket nem kell autorizálni
          */
-        if ($routes[0]->method == "CLI") {
+        if ($routes->method == "CLI") {
             return true;
         }
         /**
-         * Ha több template van betöltve, akkor dobumnt egy hibát
+         * Ha több template van betöltve, akkor dobunk egy hibát
          */
-        if (count($routes) > 1) {
+        /*if (count($routes) > 1) {
             //TODO: Üzi kell
-            throw new \Exception("",10102);
-        }
+           // throw new \Exception("",10102);
+        }*/
 
         /**
          * Ha van talált oldal, az jó
          * @var SiteObject $item
          */
         foreach ($this->allowedSitesList as $item) {
-            if (preg_match("/^" . $item->path_to_regex . "$/", $routes[0]->path)) {
+            if (preg_match("/^" . $item->path_to_regex . "$/", $routes->path)) {
                 return true;
             }
         }
 
         //TODO: AUTH FÜGGVÉNYT LE KELL FUTTATNI
-        return $this->run_autorise_function($routes[0]->path);
+        return $this->run_autorise_function($routes->path);
 
     }
 

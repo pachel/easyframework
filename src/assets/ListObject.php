@@ -10,8 +10,8 @@ abstract class ListObject implements \ArrayAccess, \Iterator
 
     private const
         METHOD_ALIASES = [
-        "gecet" => ["get", "onlyindex", "cut","count"],
-        "compare" => ["equal", "notequal", "smallerthan", "greaterthan","regex"]
+        "gecet" => ["get", "onlyindex", "cut", "count","object"],
+        "compare" => ["equal", "notequal", "smallerthan", "greaterthan", "regex"]
     ];
     protected $class;
     protected $pointer = 0;
@@ -26,9 +26,12 @@ abstract class ListObject implements \ArrayAccess, \Iterator
         SEARCH_REGEX = 4;
 
     private int $findcount = 0;
-    public function reset(){
+
+    public function reset()
+    {
         $this->containter = [];
     }
+
     public function search($search, $mod = self::SEARCH_EQUAL, $only_index = false)
     {
         $return = [];
@@ -37,10 +40,11 @@ abstract class ListObject implements \ArrayAccess, \Iterator
             if (is_array($search)) {
                 $key = array_keys($search);
                 $method = $key[0];
+                //$m = (method_exists($this,$item->$method)?$item->$method:"");
                 if (($item->$method == $search[$key[0]] && $mod == self::SEARCH_EQUAL)
                     || ($item->$method != $search[$key[0]] && $mod == self::SEARCH_NOT_EQUAL)
                     || ($item->$method < $search[$key[0]] && $mod == self::SEARCH_SMALLER_THAN)
-                    || ($mod == self::SEARCH_REGEX && !is_null($item->{$method}) && preg_match(@$search[$method],$item->{$method}))
+                    || ($mod == self::SEARCH_REGEX && !is_null($item->{$method}) && preg_match(@$search[$method], $item->{$method}))
                 ) {
                     if ($only_index) {
                         $return[] = $index;
@@ -53,7 +57,7 @@ abstract class ListObject implements \ArrayAccess, \Iterator
                     if (($value == $search && $mod == self::SEARCH_EQUAL)
                         || ($value != $search && $mod == self::SEARCH_NOT_EQUAL)
                         || ($value < $search && $mod == self::SEARCH_SMALLER_THAN)
-                        || ($mod == self::SEARCH_REGEX && preg_match($search,$value))
+                        || ($mod == self::SEARCH_REGEX && preg_match($search, $value))
                     ) {
                         if ($only_index) {
                             $return[] = $index;
@@ -65,21 +69,23 @@ abstract class ListObject implements \ArrayAccess, \Iterator
                 }
             }
         }
-         //print_r($return);
+        //print_r($return);
         $this->findcount = count($return);
         return $return;
     }
 
-    private function set($param){
-        if (!is_array($param)){
+    private function set($param)
+    {
+        if (!is_array($param)) {
             throw new \Exception(Messages::LISTO_PARAMETER_IS_NOT_ARRAY);
         }
         $ret = $this->search([$this->findinfo->name => $this->findinfo->toCompare], $this->findinfo->compare, true);
         $keys = array_keys($param);
-        foreach ($ret AS $index => $item){
+        foreach ($ret as $index => $item) {
             $this->containter[$item]->{$keys[0]} = $param[$keys[0]];
         }
     }
+
     public function find(string $name)
     {
         $this->findcount = 0;
@@ -130,13 +136,19 @@ abstract class ListObject implements \ArrayAccess, \Iterator
                 unset($this->containter[$index]);
             }
             $this->reindex();
-        }
-        elseif ($operation == "count"){
-
+        } elseif ($operation == "count") {
             return count($this->search([$this->findinfo->name => $this->findinfo->toCompare], $this->findinfo->compare, true));
-        }
-        else{
-            return $this->search([$this->findinfo->name => $this->findinfo->toCompare], $this->findinfo->compare, ($operation=="onlyindex"?true:false));
+        } elseif ($operation == "object") {
+
+            $ret = $this->search([$this->findinfo->name => $this->findinfo->toCompare], $this->findinfo->compare);
+            $class = get_called_class();
+            $return = new $class();
+            foreach ($ret as $item) {
+                $return->push($item);
+            }
+            return $return;
+        } else {
+            return $this->search([$this->findinfo->name => $this->findinfo->toCompare], $this->findinfo->compare, ($operation == "onlyindex" ? true : false));
         }
     }
 
@@ -170,37 +182,38 @@ abstract class ListObject implements \ArrayAccess, \Iterator
 
     public function count(): int
     {
-        if($this->calls>0){
+        if ($this->calls > 0) {
             return $this->gecet("count");
         }
         return count($this->containter);
     }
-/*
-    public function match(array|string $search)
-    {
-        $return = [];
-        foreach ($this->containter as $item) {
-            if (is_array($search)) {
-                $key = array_keys($search);
-                $method = $key[0];
-                if (preg_match("/" . $search[$key[0]] . "/", $item->$method)) {
-                    $return[] = $item;
-                    break;
-                }
-            } else {
-                foreach ($item as $key => $value) {
-                    if (!is_array($value)) {
-                        if (preg_match("/" . $search . "/", $value)) {
-                            $return[] = $item;
-                            break;
+
+    /*
+        public function match(array|string $search)
+        {
+            $return = [];
+            foreach ($this->containter as $item) {
+                if (is_array($search)) {
+                    $key = array_keys($search);
+                    $method = $key[0];
+                    if (preg_match("/" . $search[$key[0]] . "/", $item->$method)) {
+                        $return[] = $item;
+                        break;
+                    }
+                } else {
+                    foreach ($item as $key => $value) {
+                        if (!is_array($value)) {
+                            if (preg_match("/" . $search . "/", $value)) {
+                                $return[] = $item;
+                                break;
+                            }
                         }
                     }
                 }
             }
+            return $return;
         }
-        return $return;
-    }
-*/
+    */
     public function push($array): void
     {
         $classname = $this->class;
@@ -221,7 +234,7 @@ abstract class ListObject implements \ArrayAccess, \Iterator
         return $this->containter[$offset];
     }
 
-    public function offsetSet($offset,$value): void
+    public function offsetSet($offset, $value): void
     {
         if (is_array($value)) {
             $this->containter[$offset] = new $this->class($value);
@@ -302,7 +315,7 @@ abstract class ListObjectItem implements \ArrayAccess
                 $this->container[$key] = $value;
 
             }
-        } elseif(is_array($array)) {
+        } elseif (is_array($array)) {
             foreach ($array as $key => $value) {
                 $this->container[$key] = $value;
 
@@ -367,18 +380,23 @@ abstract class ListObjectItem implements \ArrayAccess
  * @method compare2RequestCallBack smallerthan($value_with_compare)
  * @method compare2RequestCallBack greaterthan($value_with_compare)
  */
-final class findRequestCallBack extends CallbackBase{}
+final class findRequestCallBack extends CallbackBase
+{
+}
 
 /**
  * @method array    get()
+ * @method object    object()
  * @method void    set(array $set)
  * @method array    onlyindex()
  * @method void     cut()
  * @method int     count()
- * @method findRequestCallBack or($name)
- * @method findRequestCallBack and($name)
+ * @method findRequestCallBack or ($name)
+ * @method findRequestCallBack and ($name)
  */
-final class compare2RequestCallBack extends CallbackBase{}
+final class compare2RequestCallBack extends CallbackBase
+{
+}
 
 
 final class finInfo

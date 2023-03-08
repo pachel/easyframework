@@ -2,9 +2,12 @@
 
 namespace Pachel\EasyFrameWork;
 
+use JetBrains\PhpStorm\Deprecated;
 use Pachel\EasyFrameWork\Callbacks\generateMethodCallback;
+use Pachel\EasyFrameWork\Callbacks\layoutMethodCallback;
 use Pachel\EasyFrameWork\Callbacks\RouteMethodCallback;
 use Pachel\EasyFrameWork\Callbacks\beforeMethodCallback;
+use Pachel\EasyFrameWork\Callbacks\nameMethodCallback;
 
 /**
  * @method  \Pachel\EasyFrameWork\Callbacks\RouteMethodCallback get(string $path, array|string|object $object);
@@ -72,6 +75,7 @@ class Routing extends Prefab
         $route->url_variables = $variables;
         $route->method = strtoupper($type);
         $route->object = $object;
+        $route->index = $this->routes->count();
         $this->routes->push($route);
 
         return new RouteMethodCallback($this);
@@ -82,7 +86,7 @@ class Routing extends Prefab
      * @throws \Exception
      * @example get()->view("layout.php");
      */
-    protected function view($template)
+    protected function view($template): generateMethodCallback
     {
         $this->is_efw_configured();
         //print_r($template);
@@ -96,12 +100,47 @@ class Routing extends Prefab
         return new generateMethodCallback($this);
     }
 
-    protected function generate($type)
+    /**
+     * Meg lehet nevezni a templatet, így nem kell a kódva ágyazni a nevet,
+     * ha egy layoutba lesz meghívva, viszont a layoutban erre a névre kell majd hivatkozni!
+     *
+     * @param string $template_name
+     * @return nameMethodCallback
+     */
+    protected function name(string $template_name): nameMethodCallback
+    {
+        $this->routes[$this->routes->count() - 1]->name = $template_name;
+        return new nameMethodCallback($this);
+    }
+
+    protected function layout(string $layout): layoutMethodCallback
+    {
+        $layout = Base::instance()->env("app.views").$layout;
+        if(!file_exists($layout)){
+            throw new \Exception(Messages::DRAW_TEMPLATE_NOT_FOUND);
+        }
+        $this->routes[$this->routes->count()-1]->layout = $layout;
+        return new layoutMethodCallback($this);
+    }
+
+    /**
+     * Direkt tipus beállítva, ez egyenlőre csak json lehet, de majd később lehet, hogy bővülni fog
+     *
+     * @param $type
+     * @return generateMethodCallback
+     */
+    protected function generate($type): generateMethodCallback
     {
         $this->routes[$this->routes->count() - 1]->direct = $type;
         return new generateMethodCallback($this);
     }
 
+    /**
+     * Csak annyit csinál a függvény, hogy megnézi azt, hogy a config állomány be lett-e már töltve
+     *
+     * @return void
+     * @throws \Exception
+     */
     protected function is_efw_configured()
     {
         if (!Base::instance()->env("EFW.CONFIGURED")) {
@@ -109,6 +148,7 @@ class Routing extends Prefab
         }
     }
 
+    #[Deprecated]
     protected function get_data_from_arguments($args)
     {
         $route = new Route([
@@ -130,16 +170,37 @@ class Routing extends Prefab
         $route->url_variables = $variables;
         return $route;
     }
-    private function load_to_regex_replace(){
-        $to_replace = file_get_contents(__DIR__."/../helpers/to-regex-replace.txt");
+
+    /**
+     * A to-regex-replace.txt fájlban vannak azok a karakterek, amiket ki kell
+     * escapelni a szövegből hogy, működjön a regex
+     *
+     * @return string
+     */
+    protected function load_to_regex_replace()
+    {
+        $to_replace = file_get_contents(__DIR__ . "/../helpers/to-regex-replace.txt");
         $s = "";
-        for($x=0;$x<mb_strlen($to_replace);$x++){
-            $char = mb_substr($to_replace,$x,1);
-            $s.='\\'.$char;
+        for ($x = 0; $x < mb_strlen($to_replace); $x++) {
+            $char = mb_substr($to_replace, $x, 1);
+            $s .= '\\' . $char;
 
         }
         return $s;
     }
+
+    /**
+     * Ez készíti elő a path értékét úgy, hogy kicseréli a karaktereket a megfelelő módon
+     * pl. a * mint helyettesítő karakter csak a path végén működik, ha csak csillag
+     * van a path-ben akkor az .* lesz, tehát minden GET|POST|CLI kérésre lefut
+     * A változókat is itt szedi ki, ha pl. {valami} van a path, ben akkor azt
+     * keresni fogja később a rendszer és átadja paraméterben a methódusnak ami
+     * a path-hoz lett beállíva
+     *
+     * @param string $path
+     * @param array $url_variables
+     * @return string
+     */
     public function prepare_path_to_regex($path, &$url_variables = null): string
     {
         if ($path == "*") {
@@ -153,10 +214,10 @@ class Routing extends Prefab
             $url_variables = $preg[1];
             $path_to_regex = str_replace($preg[0], "##", ($path_to_regex != "" ? $path_to_regex : $path));
 //            $path_to_regex = preg_replace("/([\/\-\{\}\[\]\.\+\*\?\$\^\(\)\\\\|])/", "\\\\$1", $path_to_regex);
-            $path_to_regex = preg_replace("/([".$to_replace."])/", "\\\\$1", $path_to_regex);
+            $path_to_regex = preg_replace("/([" . $to_replace . "])/", "\\\\$1", $path_to_regex);
         } else {
 //            $path_to_regex = preg_replace("/([\/\-\{\}\[\]\.\+\*\?\$\^\(\)\\\\|])/", "\\\\$1", ($path_to_regex != "" ? $path_to_regex : $path));
-            $path_to_regex = preg_replace("/([".$to_replace."])/", "\\\\$1", ($path_to_regex != "" ? $path_to_regex : $path));
+            $path_to_regex = preg_replace("/([" . $to_replace . "])/", "\\\\$1", ($path_to_regex != "" ? $path_to_regex : $path));
         }
 
         //Minden regexes kifejezést ki kell iktatni a kereséshez
@@ -167,53 +228,73 @@ class Routing extends Prefab
         return $path_to_regex;
     }
 
-    protected function get_layout($template): string
+    /**
+     * Ha van a template-ben hivatkozás a layoutra, akkor annak helyét adja vissza
+     *
+     * @param string $template
+     * @return string
+     * @throws \Exception
+     */
+    protected function get_layout(string $template): string
     {
         $content = file_get_contents($template);
         if (preg_match("/<!\-\-layout:(.+)\-\->/i", $content, $preg)) {
             if (!is_file(Base::instance()->env("APP.VIEWS") . $preg[1])) {
-                throw new \Exception("Layout not exists: " . Base::instance()->env("APP.VIEWS") . $preg[1],10100);
+                throw new \Exception("Layout not exists: " . Base::instance()->env("APP.VIEWS") . $preg[1], 10100);
             }
             return Base::instance()->env("APP.VIEWS") . $preg[1];
-        }
-        elseif (preg_match("/<!\-\-.*\[layout:([a-z0-9_\.\/]+)\].*\-\->/i",$content,$preg)){
+        } elseif (preg_match("/<!\-\-.*\[layout:([a-z0-9_\.\/]+)\].*\-\->/i", $content, $preg)) {
             if (!is_file(Base::instance()->env("APP.VIEWS") . $preg[1])) {
-                throw new \Exception("Layout not exists: " . Base::instance()->env("APP.VIEWS") . $preg[1],10100);
+                throw new \Exception("Layout not exists: " . Base::instance()->env("APP.VIEWS") . $preg[1], 10100);
             }
             return Base::instance()->env("APP.VIEWS") . $preg[1];
-        }
-        else {
-            if(!preg_match("/^".$this->prepare_path_to_regex(Base::instance()->env("APP.VIEWS"))."(.*)\/(.+?)\.(.+?)\.(.*)$/",$template,$preg)){
+        } else {
+            if (!preg_match("/^" . $this->prepare_path_to_regex(Base::instance()->env("APP.VIEWS")) . "(.*)\/(.+?)\.(.+?)\.(.*)$/", $template, $preg)) {
                 return "";
             }
 
-            return $this->search_layout_from_name($preg[2],$preg[1],$preg[4]);
+            return $this->search_layout_from_name($preg[2], $preg[1], $preg[4]);
 
         }
         return "";
     }
 
-    protected function search_layout_from_name($layout,$dir,$ext): string
+    /**
+     * Ha a név valami.ize.php akkor a valami.php-t keresi a vele egy szinten lévő
+     * mappában, vagy visszább, egészen az APP.VIEW mappa gyökeréig
+     *
+     * @param string $layout
+     * @param string $dir
+     * @param string $ext
+     * @return string
+     */
+    protected function search_layout_from_name(string $layout, string $dir, string $ext): string
     {
         $view = Base::instance()->env("APP.VIEWS");
-        $files = scandir($view.$dir);
+        $files = scandir($view . $dir);
 
-        foreach ($files AS $file){
-            if($file == "." || $files == ".."){
+        foreach ($files as $file) {
+            if ($file == "." || $files == "..") {
                 continue;
             }
-            if(preg_match("/^".$this->prepare_path_to_regex($layout)."\.".$ext."$/",$file)){
-                return Functions::checkSlash($view.$dir).$file;
+            if (preg_match("/^" . $this->prepare_path_to_regex($layout) . "\." . $ext . "$/", $file)) {
+                return Functions::checkSlash($view . $dir) . $file;
             }
         }
-        if($dir!=""){
+        if ($dir != "") {
             $next = Functions::detract_last_dir($dir);
-            return $this->search_layout_from_name($layout,$next,$ext);
+            return $this->search_layout_from_name($layout, $next, $ext);
         }
 
         return "";
     }
 
+    /**
+     * Visszadja, hogy milyen request methoddal hívtuk meg az appunkat
+     * ez most GET|POST|CLI lehet
+     *
+     * @return array|mixed|string
+     */
     public function get_request_method()
     {
         $method = Base::instance()->env("SERVER.REQUEST_METHOD");

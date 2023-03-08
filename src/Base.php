@@ -4,6 +4,7 @@
 namespace Pachel\EasyFrameWork;
 
 
+use JetBrains\PhpStorm\Deprecated;
 use Pachel\EasyFrameWork\Routing;
 
 //set_error_handler("Pachel\\EasyFrameWork\\errorHandler");
@@ -43,7 +44,7 @@ class Base extends Prefab
     /**
      * @var Routes $routes
      */
-    private $routes;
+    public $routes;
     /**
      * PHP 5 allows developers to declare constructor methods for classes.
      * Classes which have a constructor method call this method on each newly-created object,
@@ -149,28 +150,31 @@ class Base extends Prefab
 
         $this->routes = Routing::instance()->get_matches_routes();
 
+        $this->runRoutesWithoutTeplate();
+
         /**
          * Ha az azonosítás sikertelen, akkor küldünk egy
          */
-        if(!Auth::instance()->is_authorised($this->routes->find("path")->notequal("*")->get())){
+        //$routes = $this->routes->find("path")->notequal("*")->object();
+        $View = new View($this->routes);
+
+        if(!$View->show2() && Routing::instance()->get_request_method()!="CLI"){
+            $this->send_error(404);
+        }
+        /*
+        if(!Auth::instance()->is_authorised($rout)){
             $this->send_error(403);
         }
         else {
 
-            /*
-            foreach ($this->routes AS $route){
-                echo $route->path."\n";
-                if($route->onlyone){
-                    echo "oo:"."1";
-                }
-            }*/
+
 
             $this->run_all_routes();
             $View = new View($this->routes);
             if(!$View->show() && Routing::instance()->get_request_method()!="CLI"){
                 $this->send_error(404);
             }
-        }
+        }*/
 
     }
     public function send_error(int $code){
@@ -179,6 +183,26 @@ class Base extends Prefab
         header($status["error"]);
         exit();
     }
+    protected function runRoutesWithoutTeplate(){
+        $torun = $this->routes->find("onlyone")->equal(true)->get();
+        if(!empty($torun)){
+            /**
+             * Csak azokat futtatjuk, ahol az onlyone paraméter be lettállítva
+             */
+            $this->run_routes($torun);
+            $this->set("EFW.onlyone",true);
+
+        }
+        else {
+            /**
+             * Csak azoknak a rootoknak a futtatása, amikhez nincs template
+             */
+            $torun = $this->routes->search(["template" => ""]);
+            $this->run_routes($torun);
+            $this->set("EFW.onlyone",false);
+        }
+    }
+    #[Deprecated]
     private function run_all_routes(){
 
         $torun = $this->routes->find("onlyone")->equal(true)->get();
@@ -199,7 +223,8 @@ class Base extends Prefab
             /**
              * A template-es rootok futtatása
              */
-            $torun = $this->routes->search(["template" => ""], Routes::SEARCH_NOT_EQUAL);
+
+            $torun = $this->routes->find("template")->notequal("")->get();
             $this->run_routes($torun);
             $this->set("EFW.onlyone",false);
         }
@@ -209,9 +234,11 @@ class Base extends Prefab
      * @param Route[] $torun
      * @return void
      */
-    private function run_routes(&$torun){
+    protected function run_routes(&$torun){
         foreach ($torun AS &$item){
-            $this->run_content($item);
+            if(Auth::instance()->is_authorised($item)) {
+                $this->run_content($item);
+            }
         }
     }
     /**
@@ -219,7 +246,7 @@ class Base extends Prefab
      * @return bool
      */
     use returnObjectArray;
-    private function run_content(&$route)
+    function run_content(&$route)
     {
         /**
          * @var Route $route
@@ -390,7 +417,12 @@ class Base extends Prefab
 
         return $this->env($name);
     }
-
+    public function __call(string $name, array $arguments)
+    {
+        if(method_exists($this,$name)){
+            return $this->{$name}(...$arguments);
+        }
+    }
 }
 
 /**

@@ -30,6 +30,8 @@ echo "asdlj";
         color: #c0592d;
     }
 </style>
+<!--[content:content4]-->
+<!--[content:content3]-->
 <pre>
     <code>
 
@@ -37,3 +39,4 @@ echo "asdlj";
 </pre>
 <!--[load:footer.php]-->
 <!--[content:js]-->
+<!--[content:content2]-->

@@ -32,10 +32,12 @@ class SmallController{
     {
         $this->app = $app;
     }
-    public function authorise():bool
+    public function authorise($path):bool
     {
-
-        return true;
+        if($path == "multiples"){
+            return true;
+        }
+        return false;
     }
     public function dashboard($app,$category,$id){
        // echo debug_backtrace()[0]['class']."->".debug_backtrace()[0]['function']."();\n";
