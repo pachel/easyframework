@@ -64,4 +64,4 @@ Auth::instance()->allow("api.php");
 /**
  * Csak a POST|GET path-ra vonatkozik, a cli nincs ellenőrizve
  */
-//Auth::instance()->authorise([SmallController::class,"authorise"]);
+Auth::instance()->authorise([SmallController::class,"authorise"]);

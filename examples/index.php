@@ -101,15 +101,11 @@ require __DIR__."/config/Routes.php";
 
 
 $Base = Base::instance();
-/*
-$Base->DB->select(
-    "asdas",
-    "asd",
-    [
-        "data"=>"select *FROM anothertable WHERE akarmi",
-        "as"=>"ize"
-    ]
-);
-exit();*/
+
+$result = $Base->DB->select()->from("dolgozok");
+$Base->DB->delete("dolgozok")->id(1);
+$result = $Base->DB->select("nev,id,kex.id",["COUNT(*)","count"])->from("dolgozok",["ize","i"])->object();
+print_r($result);
+exit();
 $Base->run();
 

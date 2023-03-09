@@ -6,7 +6,11 @@ use Pachel\EasyFrameWork\DB\callBacks\fromCallback;
 
 trait fromMethod
 {
-    public function from():fromCallback{
-        return $this->class->from();
+    /**
+     * @param array|string ...$arguments
+     * @return fromCallback
+     */
+    public function from(array|string ...$arguments):fromCallback{
+        return $this->class->from(...$arguments);
     }
 }

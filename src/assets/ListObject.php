@@ -7,7 +7,6 @@ use Pachel\EasyFrameWork\Callbacks\CallbackBase;
 abstract class ListObject implements \ArrayAccess, \Iterator
 {
     protected $containter = [];
-
     private const
         METHOD_ALIASES = [
         "gecet" => ["get", "onlyindex", "cut", "count","object"],
