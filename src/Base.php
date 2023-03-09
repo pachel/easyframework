@@ -399,14 +399,19 @@ class Base extends Prefab
 
 
         foreach ($config as $key => &$item) {
-            foreach ($item AS $key2 =>&$item2) {
-                if ($this->is_path($key.".".$key2)) {
-                    $item2 = Functions::checkSlash($item2);
-                    if (!is_dir($item2) && strtoupper($key2)!="URL") {
-                        throw new \Exception(Messages::BASE_FOLDER_NOT_EXISTS);
+            /**
+             * Ha tömb az érték
+             */
+            if(is_array($item)) {
+                foreach ($item as $key2 => &$item2) {
+                    if ($this->is_path($key . "." . $key2)) {
+                        $item2 = Functions::checkSlash($item2);
+                        if (!is_dir($item2) && strtoupper($key2) != "URL") {
+                            throw new \Exception(Messages::BASE_FOLDER_NOT_EXISTS);
+                        }
                     }
-                }
 
+                }
             }
             $this->set($key, $item);
         }
