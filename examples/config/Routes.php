@@ -2,6 +2,9 @@
 namespace Pachel\EasyFrameWork;
 
 Routing::instance()->get("*",[SmallController::class,"always"])->first();
+Routing::instance()->get("{lang}(2)*",function ($app,$lang){
+
+})->allow();
 Routing::instance()->get("/",function ($app){$app->reroute("teszt");})->allow();
 
 Routing::instance()->get("dashboard/login",[SmallController::class,"dashboard3"])->view("login.php");
@@ -58,4 +61,4 @@ Auth::instance()->allow("api.php");
 /**
  * Csak a POST|GET path-ra vonatkozik, a cli nincs ellenőrizve
  */
-Auth::instance()->authorise([SmallController::class,"authorise"]);
+//Auth::instance()->authorise([SmallController::class,"authorise"]);
