@@ -79,7 +79,7 @@ class Routing extends Prefab
         $route = new Route();
         $route->path = Functions::checkSlash2($path);
         //$route->path_original = $path;
-        $route->path_to_regex = $this->prepare_path_to_regex($route->path, $variables);
+        $route->path_to_regex = $this->prepare_path_to_regex($path, $variables);
         $route->url_variables = $variables;
         $route->method = strtoupper($type);
         $route->object = $object;
@@ -214,8 +214,23 @@ class Routing extends Prefab
         if ($path == "*") {
             return ".*";
         }
-        $to_replace = $this->to_regex_replace;
 
+        if(preg_match("/^regex:(.+)$/",$path,$preg)){
+            preg_match_all("/\([^\)]+\)/",$preg[1],$preg2);
+            if(count($preg2[0])>0){
+                $c = 0;
+                foreach ($preg2[0] AS $item){
+                    $url_variables[] = "item".$c;
+                    $c++;
+                }
+
+            }
+
+            return $preg[1];
+        }
+        $path = preg_replace("/\/$/","",$path);
+
+        $to_replace = $this->to_regex_replace;
         $path_to_regex = preg_replace("/\*$/", "%", $path);
         $counter = 0;
         if (preg_match_all("/\{(.+?)\}(\([0-9]+\))?/", $path, $preg)) {
