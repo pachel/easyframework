@@ -128,4 +128,21 @@ class Functions
 
         return $encoding;
     }
+    public static function get_random_string($count = 10,string|bool $extra = false, $chars = "qwertzuioplkjhgfdsayxcvbnm0123456789QWERTZUIOPLKJHGFDSAYXCVBNM")
+    {
+        if(is_string($extra)){
+
+        }
+        elseif($extra){
+            $extra = "$.:-_*+|!%=";
+        }
+        else{
+            $extra = "";
+        }
+        $string = "";
+        for ($x = 0; $x < $count; $x++) {
+            $string .= substr($chars.$extra, mt_rand(0, strlen($chars.$extra)), 1);
+        }
+        return $string;
+    }
 }

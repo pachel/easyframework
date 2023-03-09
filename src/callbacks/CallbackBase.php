@@ -7,7 +7,7 @@ use Pachel\EasyFrameWork\Helpers\MethodInvoker;
 abstract class CallbackBase
 {
     protected $class = "";
-    protected $arguments = [];
+//    protected $arguments = [];
 
     public function __construct($class)
     {

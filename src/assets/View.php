@@ -198,6 +198,11 @@ final class View
             header("Content-Disposition:inline;filename=generated_" . time() . ".json");
         }
         echo $content->content;
+        if(defined("START_EFW")) {
+            $timelog = Base::instance()->env("app.temp") . "timelog.log";
+            $line = date("Y-m-d H:i:s") . " " . round(microtime(true) - START_EFW, 3) . " " . Base::instance()->env("server.request_uri") . "\n";
+            file_put_contents($timelog, $line, FILE_APPEND);
+        }
     }
 
     #[Deprecated]

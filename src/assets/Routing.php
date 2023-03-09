@@ -8,16 +8,13 @@ use Pachel\EasyFrameWork\Callbacks\layoutMethodCallback;
 use Pachel\EasyFrameWork\Callbacks\RouteMethodCallback;
 use Pachel\EasyFrameWork\Callbacks\beforeMethodCallback;
 use Pachel\EasyFrameWork\Callbacks\nameMethodCallback;
+use Pachel\EasyFrameWork\Traits\getMethod;
+use Pachel\EasyFrameWork\Traits\routeMethods;
 
-/**
- * @method  \Pachel\EasyFrameWork\Callbacks\RouteMethodCallback get(string $path, array|string|object $object);
- * @method  \Pachel\EasyFrameWork\Callbacks\RouteMethodCallback post(string $path, array|string|object $object);
- * @method  \Pachel\EasyFrameWork\Callbacks\RouteMethodCallback cli(string $args, array|string|object $object);
- * @method  \Pachel\EasyFrameWork\Callbacks\RouteMethodCallback postget(string $path, array|string|object $object);
- */
+
 class Routing extends Prefab
 {
-    public Routes $routes;
+    protected Routes $routes;
     protected string $to_regex_replace;
 
     protected const
@@ -28,6 +25,10 @@ class Routing extends Prefab
 
     use MethodAlias;
 
+    /**
+     * Callback függvények behívása
+     */
+    use routeMethods;
     protected $vars;
 
     public function __construct()
@@ -201,7 +202,7 @@ class Routing extends Prefab
      * @param array $url_variables
      * @return string
      */
-    public function prepare_path_to_regex($path, &$url_variables = null): string
+    protected function prepare_path_to_regex($path, &$url_variables = null): string
     {
         if ($path == "*") {
             return ".*";
@@ -295,7 +296,7 @@ class Routing extends Prefab
      *
      * @return array|mixed|string
      */
-    public function get_request_method()
+    protected function get_request_method()
     {
         $method = Base::instance()->env("SERVER.REQUEST_METHOD");
         if (empty($method)) {
@@ -317,7 +318,7 @@ class Routing extends Prefab
         return $URI;
     }
 
-    public function get_matches_routes(): Routes
+    protected function get_matches_routes(): Routes
     {
         //ob_clean();
         // echo Base::instance()->env("SERVER.REQUEST_URI");
@@ -325,7 +326,7 @@ class Routing extends Prefab
         return $this->routes->matchesroutes();
     }
 
-    public function generate_uri(): string
+    protected function generate_uri(): string
     {
         if (!isset(self::$VARS["ROUTE"]) || empty(self::$VARS["ROUTE"])) {
 

@@ -5,12 +5,14 @@ namespace Pachel\EasyFrameWork;
 
 
 use JetBrains\PhpStorm\Deprecated;
+use Pachel\EasyFrameWork\DB\mySql;
 use Pachel\EasyFrameWork\Routing;
 
 //set_error_handler("Pachel\\EasyFrameWork\\errorHandler");
 set_exception_handler("Pachel\\EasyFrameWork\\exceptionHandler");
 class Base extends Prefab
 {
+    protected mySql $DB;
 
     /**
      * @var array $vars
@@ -36,7 +38,7 @@ class Base extends Prefab
     /**
      * Azok a változók, ahol meg kell nézni, hogy a karakterlánc végén egy perjel legyen
      */
-    const VAR_PATHS = ["app.ui", "app.views", "app.url", "app.logs"];
+    const VAR_PATHS = ["app.ui", "app.views", "app.url", "app.logs","app.temp"];
     /**
      * Ezeket a függvényeket kitiltjuk a temple fájlokból
      */
@@ -61,6 +63,12 @@ class Base extends Prefab
         $this->set("EFW.configured",false);
     }
 
+    protected function setdbProperty(){
+        if(!MySql::$CONNECTED) {
+            $this->DB = new mySql();
+        }
+        return $this->DB;
+    }
     private function get($key,$fromself = true)
     {
         if (empty($key)) {
@@ -181,6 +189,11 @@ class Base extends Prefab
         ob_clean();
         $status =  Functions::HTTPStatus($code);
         header($status["error"]);
+        if(defined("START_EFW")) {
+            $timelog = $this->env("app.temp") . "timelog.log";
+            $line = date("Y-m-d H:i:s") . " " . round(microtime(true) - START_EFW, 3) . " " . $this->env("server.request_uri") . "\n";
+            file_put_contents($timelog, $line, FILE_APPEND);
+        }
         exit();
     }
     protected function runRoutesWithoutTeplate(){
@@ -414,7 +427,9 @@ class Base extends Prefab
     }
     public function __get(string $name)
     {
-
+        if($name == "DB"){
+            return $this->setdbProperty();
+        }
         return $this->env($name);
     }
     public function __call(string $name, array $arguments)
@@ -430,6 +445,7 @@ class Base extends Prefab
  * @method mixed env(string $name,mixed $value);
  * @method Routes get_loaded_routes();
  * @method void send_error(int $code);
+ * @property  mySql DB;
  * @property  array POST;
  * @property  array GET;
  * @property  array SESSION;

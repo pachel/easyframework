@@ -3,38 +3,26 @@
 namespace Pachel\EasyFrameWork\Callbacks;
 
 use Pachel\EasyFrameWork\Routing;
+use Pachel\EasyFrameWork\Traits\beforeMethod;
+use Pachel\EasyFrameWork\Traits\firstMethod;
+use Pachel\EasyFrameWork\Traits\jsonMethod;
+use Pachel\EasyFrameWork\Traits\viewMethod;
 
 
-/**
- * @method void first();
- * @method generateMethodCallback json();
- * @method generateMethodCallback pdf();
- * @method beforeMethodCallback before($runnable_srcipt);
- */
+
 final class RouteMethodCallback extends CallbackBase
 {
-
-    /**
-     * Itt kell beállítani a template állományt, pontosan meg kell adni
-     * a template elérési útvonalát az APP.VIEWS mappán belül
-     * @see https://github.com/pachel/easyframework#routing
-     * @param string $template_name
-     * @return generateMethodCallback
-     */
-    public function view(string $template_name): generateMethodCallback
-    {
-        return $this->class->view($template_name);
-    }
+    use viewMethod;
+    use firstMethod;
+    use jsonMethod;
+    use beforeMethod;
 }
 
-/**
- * @method generateMethodCallback view(string $template_name);
- * @method void first();
- * @method generateMethodCallback json();
- * @method generateMethodCallback pdf();
- */
 final class beforeMethodCallback extends CallbackBase
 {
+    use viewMethod;
+    use firstMethod;
+    use jsonMethod;
 }
 
 

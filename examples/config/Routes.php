@@ -20,10 +20,14 @@ Routing::instance()->get("layout",function ($app){$app->kex = 1;})->view("unname
 Routing::instance()->get("layout",function ($app){$app->kex = 0;})->view("unnamed.php")->name("content2")->layout("layout.php");
 Routing::instance()->get("layout",function ($app){$app->kex = 2;})->view("unnamed.php")->name("content3")->layout("layout.php");
 Routing::instance()->get("layout",function ($app){$app->kex = 3;})->view("unnamed.php")->name("js")->layout("layout.php");
+
+
+
 /**
  * Az api kéréseknél (POST|GET) csak ez az egy metódus fut le,
  * és egy JSON objektumot ad vissza a oldal
  */
+
 Routing::instance()->postget("api.php",[SmallController::class,"api"])->before([SmallController::class,"api_key_check"])->json()->onlyone();
 Routing::instance()->cli("email-szinkronok",function ($app){
     /**

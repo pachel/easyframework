@@ -1,5 +1,6 @@
 <?php
 namespace Pachel\EasyFrameWork;
+define("START_EFW",microtime(true));
 session_start();
 ob_start();
 
@@ -100,4 +101,15 @@ require __DIR__."/config/Routes.php";
 
 
 $Base = Base::instance();
+
+$Base->DB->select(
+    "asdas",
+    "asd",
+    [
+        "data"=>"select *FROM anothertable WHERE akarmi",
+        "as"=>"ize"
+    ]
+);
+exit();
 $Base->run();
+
