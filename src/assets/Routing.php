@@ -67,11 +67,15 @@ class Routing extends Prefab
     {
         $this->routes[$this->routes->count() - 1]->onlyone = true;
     }
+    protected function allow(){
+        $this->routes[$this->routes->count() - 1]->allow = true;
+    }
 
     protected function method($type, $path, $object = null)
     {
         $route = new Route();
         $route->path = Functions::checkSlash2($path);
+        //$route->path_original = $path;
         $route->path_to_regex = $this->prepare_path_to_regex($route->path, $variables);
         $route->url_variables = $variables;
         $route->method = strtoupper($type);

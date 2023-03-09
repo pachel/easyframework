@@ -105,3 +105,14 @@ trait onlyoneMethod{
 
     }
 }
+trait allowMethod{
+    /**
+     * Ha nem akarjuk a Routing::instance()->allow($path) részt meghívni,
+     * ezt is lehet használni annak kiváltására
+     *
+     * @return void
+     */
+    public function allow():void{
+        $this->class->allow();
+    }
+}

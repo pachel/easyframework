@@ -2,7 +2,8 @@
 namespace Pachel\EasyFrameWork;
 
 Routing::instance()->get("*",[SmallController::class,"always"])->first();
-Routing::instance()->get("/",[SmallController::class,"landing"])->view("layout.index.php");
+Routing::instance()->get("/",function ($app){$app->reroute("teszt");})->allow();
+
 Routing::instance()->get("dashboard/login",[SmallController::class,"dashboard3"])->view("login.php");
 Routing::instance()->get("teszt",[SmallController::class,"dashboard2"])->view("layout.index.php");
 Routing::instance()->get("dashboard/{category}/{id}.html",[SmallController::class,"dashboard"])->view("layout.index.php");
@@ -12,7 +13,7 @@ Routing::instance()->get("ss",[SmallController::class,"ss"])->view("login/layout
 
 
 Routing::instance()->get("multiples")->view("multiples/index.html");
-Routing::instance()->get("withlayouts")->view("multiples/withlayout/inner.html");
+Routing::instance()->get("withlayouts")->view("multiples/withlayout/inner.html")->allow();
 Routing::instance()->get("named")->view("named/content.html")->name("content");
 
 Routing::instance()->get("layout",function ($app){$app->kex = 4;})->view("unnamed.php")->name("content4")->layout("layout.php");
@@ -42,12 +43,15 @@ Routing::instance()->cli("email-szinkronok",function ($app){
 /**
  * Authorise
  */
+
 Auth::instance()->policy("deny");
 
-Auth::instance()->allow("withlayouts/");
+//Auth::instance()->allow("withlayouts/");
+//Auth::instance()->allow("/");
 Auth::instance()->allow("dashboard/*");
 Auth::instance()->allow("layout");
 Auth::instance()->allow("named");
+Auth::instance()->allow("teszt");
 Auth::instance()->allow("unnamed");
 Auth::instance()->allow("dashboard/login");
 Auth::instance()->allow("api.php");

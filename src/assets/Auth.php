@@ -66,6 +66,12 @@ class Auth extends Prefab
         if (!$this->enabled) {
             return true;
         }
+        if($routes->path == "*"){
+            return true;
+        }
+        if($routes->allow){
+            return true;
+        }
         /**
          * Ha nincs beállítva hitelesítő metódus, akkor nem kell hitelesíteni
          */
@@ -95,6 +101,9 @@ class Auth extends Prefab
          * Ha van talált oldal, az jó
          * @var SiteObject $item
          */
+
+
+
         foreach ($this->allowedSitesList as $item) {
             if (preg_match("/^" . $item->path_to_regex . "$/", $routes->path)) {
                 return true;

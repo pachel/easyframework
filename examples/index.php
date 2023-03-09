@@ -49,8 +49,8 @@ class SmallController{
 
     }
     public function dashboard2($app){
-        $t = new CodeFormater();
-        $this->app->code = $t->php(file_get_contents(__DIR__."/config/App.php"));
+        //$t = new CodeFormater();
+        //$this->app->code = $t->php(file_get_contents(__DIR__."/config/App.php"));
     }
     public function email_szinkron(){
         echo debug_backtrace()[0]['class']."->".debug_backtrace()[0]['function']."();\n";
@@ -101,7 +101,7 @@ require __DIR__."/config/Routes.php";
 
 
 $Base = Base::instance();
-
+/*
 $Base->DB->select(
     "asdas",
     "asd",
@@ -110,6 +110,6 @@ $Base->DB->select(
         "as"=>"ize"
     ]
 );
-exit();
+exit();*/
 $Base->run();
 

@@ -198,6 +198,7 @@ class Base extends Prefab
     }
     protected function runRoutesWithoutTeplate(){
         $torun = $this->routes->find("onlyone")->equal(true)->get();
+
         if(!empty($torun)){
             /**
              * Csak azokat futtatjuk, ahol az onlyone paraméter be lettállítva
@@ -210,6 +211,7 @@ class Base extends Prefab
             /**
              * Csak azoknak a rootoknak a futtatása, amikhez nincs template
              */
+
             $torun = $this->routes->search(["template" => ""]);
             $this->run_routes($torun);
             $this->set("EFW.onlyone",false);
@@ -248,6 +250,7 @@ class Base extends Prefab
      * @return void
      */
     protected function run_routes(&$torun){
+
         foreach ($torun AS &$item){
             if(Auth::instance()->is_authorised($item)) {
                 $this->run_content($item);
@@ -264,6 +267,7 @@ class Base extends Prefab
         /**
          * @var Route $route
          */
+
         if(empty($route)){
             return false;
         }
