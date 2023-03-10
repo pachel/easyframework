@@ -47,7 +47,7 @@ class AuthTest extends TestCase
      * @covers 3
      * @return void
      */
-    public function test_is_authorised(){/*
+    public function test_is_authorised(){
         $Auth = new \Pachel\EasyFrameWork\Tests\AuthTest();
 
         $Routes[0] = new \Pachel\EasyFrameWork\Route(["path"=>"teszt","method"=>"GET"]);
@@ -60,29 +60,26 @@ class AuthTest extends TestCase
         //$this->assertTrue($active,2);
 
         $Auth->authorise(function (){return false;});
-        $active = $Auth->is_authorised($Routes);
+        $active = $Auth->is_authorised($Routes[0]);
         $this->assertFalse($active,"A check függvény lefut-e?");
 
 
         $Auth->allow("teszt/");
-        $active = $Auth->is_authorised($Routes);
+        $active = $Auth->is_authorised($Routes[0]);
         $this->assertTrue($active,"Engedélyezett oldal a perjellel a végén is oké");
 
         $Auth->allowedSitesList->reset();
         $Auth->allow("tesz*");
-        $active = $Auth->is_authorised($Routes);
+        $active = $Auth->is_authorised($Routes[0]);
         $this->assertTrue($active,"Engedélyezett oldal * a végén");
 
         $Auth->allowedSitesList->reset();
         $Auth->allow("te*szt");
-        $active = $Auth->is_authorised($Routes);
+        $active = $Auth->is_authorised($Routes[0]);
         $this->assertFalse($active,"Engedélyezett oldal * a közepén");
 
 
-        $Routes[] = new \Pachel\EasyFrameWork\Route(["path"=>"teszt2"]);
-        $this->expectExceptionCode(10102);
-        $active = $Auth->is_authorised($Routes);
-*/
+
     }
 
     /**

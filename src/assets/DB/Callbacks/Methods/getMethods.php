@@ -10,7 +10,11 @@ trait getMethods
     public function array():array{
         return $this->class->get("row");
     }
-    public function simple():\stdClass|array{
+
+    /**
+     * @return \stdClass|array
+     */
+    public function simple(){
         return $this->class->get("simple");
     }
     /*

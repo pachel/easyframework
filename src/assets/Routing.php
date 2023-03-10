@@ -231,15 +231,29 @@ class Routing extends Prefab
         $path = preg_replace("/\/$/","",$path);
 
         $to_replace = $this->to_regex_replace;
+        /*
+        $to_replace2 = '';
+        for ($x=0;$x<strlen($to_replace);$x++){
+            $to_replace2.=preg_quote(mb_substr($to_replace,$x,1));
+        }*/
         $path_to_regex = preg_replace("/\*$/", "%", $path);
+
         $counter = 0;
         if (preg_match_all("/\{(.+?)\}(\([0-9]+\))?/", $path, $preg)) {
+            //print_r($preg);
             $url_variables = $preg[1];
+
             foreach ($preg[1] as $index => $ct) {
                 $path_to_regex = str_replace($preg[0][$index], "##".(!empty($preg[2][$index])?"______".str_replace(["(",")"],"",$preg[2][$index]):""), ($path_to_regex != "" ? $path_to_regex : $path));
-    //            $path_to_regex = preg_replace("/([\/\-\{\}\[\]\.\+\*\?\$\^\(\)\\\\|])/", "\\\\$1", $path_to_regex);
-                $path_to_regex = preg_replace("/([" . $to_replace . "])/", "\\\\$1", $path_to_regex);
+               // $path_to_regex = preg_replace("/([\/\-\{\}\[\]\.\+\*\?\$\^\(\)\\\\|])/", "\\\\$1", $path_to_regex);
+         //       $to_replace = "\/\.\-\?\+\[\]\{\}\(\)\*\|";
+              //  echo $to_replace2."\n";
+
+
             }
+            //echo $path_to_regex." : 2\n";
+            $path_to_regex = preg_replace("/([".$to_replace."])/i", "\\\\$1", $path_to_regex);
+            /*
             /*
             if ($counter > 0) {
                 $to = "!!" . str_replace(["(", ")"], "", $counter);
@@ -248,14 +262,20 @@ class Routing extends Prefab
 
         } else {
 //            $path_to_regex = preg_replace("/([\/\-\{\}\[\]\.\+\*\?\$\^\(\)\\\\|])/", "\\\\$1", ($path_to_regex != "" ? $path_to_regex : $path));
-            $path_to_regex = preg_replace("/([" . $to_replace . "])/", "\\\\$1", ($path_to_regex != "" ? $path_to_regex : $path));
+            $path_to_regex = preg_replace("/([" . $to_replace . "])/", '\\\\$1', ($path_to_regex != "" ? $path_to_regex : $path));
         }
 
         //Minden regexes kifejezést ki kell iktatni a kereséshez
 
         $path_to_regex = preg_replace("/(##)______([0-9]+)/",'(.{$2})', $path_to_regex);
         $path_to_regex = str_replace(["##", "%"], ["(.+)", ".*"], $path_to_regex);
-
+        /*
+        if($path == "dashboard/{category}/{id}.html") {
+            echo $path_to_regex . " : 1\n";
+          //  echo $path . "\n";
+            print_r($preg);
+            exit();
+        }*/
         //echo $path_to_regex."\n";
         //exit();
         return $path_to_regex;
@@ -282,7 +302,12 @@ class Routing extends Prefab
             }
             return Base::instance()->env("APP.VIEWS") . $preg[1];
         } else {
-            if (!preg_match("/^" . $this->prepare_path_to_regex(Base::instance()->env("APP.VIEWS")) . "(.*)\/(.+?)\.(.+?)\.(.*)$/", $template, $preg)) {
+            if (!preg_match("/^" . $this->prepare_path_to_regex(Base::instance()->env("APP.VIEWS")) . "(.*)\/([^\.]+)\.([^\.]+)\.([^\.]+)$/", $template, $preg)) {
+
+
+
+
+
                 return "";
             }
 
@@ -311,7 +336,7 @@ class Routing extends Prefab
                 continue;
             }
             if (preg_match("/^" . $this->prepare_path_to_regex($layout) . "\." . $ext . "$/", $file)) {
-                return Functions::checkSlash($view . $dir) . $file;
+                return str_replace("//","/",Functions::checkSlash($view . $dir)) . $file;
             }
         }
         if ($dir != "") {

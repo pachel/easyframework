@@ -10,12 +10,12 @@ Routing::instance()->get("regex:^api\/([a-z]{2})\/([a-z]{2})\/.*",
 })->allow();
 Routing::instance()->get("/",function ($app){$app->reroute("teszt");})->allow();
 
-Routing::instance()->get("dashboard/login",[SmallController::class,"dashboard3"])->view("login.php");
+Routing::instance()->get("dashboard/login",[SmallController::class,"dashboard3"])->view("login/layout.register.php");
 Routing::instance()->get("teszt",[SmallController::class,"dashboard2"])->view("layout.index.php");
-Routing::instance()->get("dashboard/{category}/{id}.html",[SmallController::class,"dashboard"])->view("layout.index.php");
+Routing::instance()->get("dashboard/{category}/{id}.html",[SmallController::class,"dashboard"])->view("layout.index.php")->allow();
 Routing::instance()->get("static.html")->view("login.php");
 Routing::instance()->get("login")->view("login.php");
-Routing::instance()->get("ss",[SmallController::class,"ss"])->view("login/layout.register.php");
+Routing::instance()->get("teszt/{id}/{valami}.html",[SmallController::class,"ss"])->view("login/layout.register.php");
 
 
 Routing::instance()->get("multiples")->view("multiples/index.html");

@@ -13,4 +13,8 @@ class RoutingTest extends \Pachel\EasyFrameWork\Routing{
         return call_user_func_array(array($this, $name), $arguments);
 
     }*/
+    public function __get(string $name)
+    {
+        return $this->{$name};
+    }
 }

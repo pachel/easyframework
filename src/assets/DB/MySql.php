@@ -297,7 +297,7 @@ class mySql
     }
 
 
-    protected function get($type)
+    protected function get(string $type)
     {
         switch ($type) {
             case "line":

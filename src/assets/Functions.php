@@ -128,7 +128,7 @@ class Functions
 
         return $encoding;
     }
-    public static function get_random_string($count = 10,string|bool $extra = false, $chars = "qwertzuioplkjhgfdsayxcvbnm0123456789QWERTZUIOPLKJHGFDSAYXCVBNM")
+    public static function get_random_string($count = 10, $extra = false, $chars = "qwertzuioplkjhgfdsayxcvbnm0123456789QWERTZUIOPLKJHGFDSAYXCVBNM")
     {
         if(is_string($extra)){
 

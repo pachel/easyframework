@@ -10,7 +10,11 @@ use Pachel\EasyFrameWork\DB\callBacks\Methods\updateMethods;
  */
 final class updateCallback extends CallbackBase
 {
-    public function set(array|object $data):setCallback{
+    /**
+     * @param array|object $data
+     * @return setCallback
+     */
+    public function set($data):setCallback{
         return $this->class->set($data);
     }
 

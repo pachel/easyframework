@@ -89,7 +89,7 @@ trait OldTimerMethods
         if (!$err) {
             //error occured, show the error:
             $error = $mysql_queryPrepared->errorInfo();
-            throw new Exception("MYSQL ERROR: " . $error[2] . "\n");
+            throw new \Exception("MYSQL ERROR: " . $error[2] . "\n");
         }
         return (true);
     }

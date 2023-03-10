@@ -105,6 +105,7 @@ require __DIR__."/config/Routes.php";
 
 
 $Base = Base::instance();
+goto end;
 $Base->DB->setResultType(mySql::RESULT_OBJECT);
 //$result = $Base->DB->select()->from("dolgozok");
 /*
@@ -173,13 +174,13 @@ $User->id_dolgozok = 0;
 /**
  *
  */
-
+/*
 $db->insert($User);
 $User->id = $db->last_insert_id();
 $db->delete($User);
 //print_r($User);
-
-exit();
+*/
+//exit();
 //print_r(get_class_vars(User::class));
 $line = $db->select($User)->where(["id"=>12,"nev"=>"s"])->line();
 print_r($line);
@@ -209,6 +210,8 @@ $Base->DB->query($sql)->params()->object();
 
 //$result = $Base->DB->select("nev,id,kex.id",["COUNT(*)","count"])->from("dolgozok",["ize","i"])->object();
 //print_r($result);
+end:
 exit();
+
 $Base->run();
 

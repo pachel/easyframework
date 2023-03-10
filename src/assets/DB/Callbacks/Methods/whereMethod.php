@@ -6,7 +6,11 @@ use Pachel\EasyFrameWork\DB\callBacks\whereCallback;
 
 trait whereMethod
 {
-    public function where(object|array $table):whereCallback{
+    /**
+     * @param object|array $table
+     * @return whereCallback
+     */
+    public function where($table):whereCallback{
         return $this->class->where($table);
     }
 }
