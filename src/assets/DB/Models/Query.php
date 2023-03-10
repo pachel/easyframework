@@ -1,6 +1,6 @@
 <?php
 
-namespace Pachel\EasyFrameWork\DB\Interfaces;
+namespace Pachel\EasyFrameWork\DB\Modells;
 
 final class Query
 {
@@ -11,4 +11,8 @@ final class Query
     public $orderby;
     public $groupby;
     public $limit;
+    public string $sql_query = "";
+
+    public array $pdo_parameters = [];
+    public bool $safemode;
 }

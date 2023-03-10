@@ -5,8 +5,7 @@ use JetBrains\PhpStorm\Deprecated;
 use \PDO;
 trait OldTimerMethods
 {
-    #[Deprecated]
-    public function fromDatabase($sql, $field = NULL, $params = [], $id = null)
+    private function fromDatabase2($sql, $field = NULL, $params = [], $id = null)
     {
 
         if (!$sql) {
@@ -36,7 +35,8 @@ trait OldTimerMethods
         }
         if ($field == '@simple') {
             if ($result->rowCount()) {
-                $temp = $result->fetch(PDO::FETCH_ASSOC);
+                $temp = $result->fetch($this->result_type);
+
                 $resultArray = array_values($temp);
                 return ($resultArray[0]);
             } else {
@@ -45,11 +45,7 @@ trait OldTimerMethods
         }
         if ($field == '@line') {
             if ($result->rowCount()) {
-                if ($this->object) {
-                    $resultArray = $result->fetch(PDO::FETCH_OBJ);
-                } else {
-                    $resultArray = $result->fetch(PDO::FETCH_ASSOC);
-                }
+                    $resultArray = $result->fetch($this->result_type);
                 return ($resultArray);
             } else {
                 return [];
@@ -73,7 +69,7 @@ trait OldTimerMethods
         }
         $i = 0;
         if ($result->rowCount()) {
-            while ($temp = $result->fetch(PDO::FETCH_ASSOC)) {
+            while ($temp = $result->fetch($this->result_type)) {
                 $resultArray[$i] = $temp;
                 $i++;
             }
@@ -84,7 +80,7 @@ trait OldTimerMethods
         return [];
     }
 
-    public function toDatabase($sql, $params = array())
+    private function toDatabase($sql, $params = array())
     {
         $mysql_queryPrepared = $this->PDO->prepare($sql);
         $mysql_queryReturn = $mysql_queryPrepared->execute($params);
@@ -141,15 +137,28 @@ trait OldTimerMethods
                 $query .= "`" . $key . "`=:" . $key;
                 $x++;
             }
+            /*
             $k = array_keys($id);
             $query .= " WHERE " . $k[0] . "=:" . $k[0];
             $array[$k[0]] = $id[$k[0]];
+            */
+            $query.=" WHERE ";
+            $counter = 0;
+            foreach ($id AS $key => $value){
+                $array[$key] = $value;
+                if($counter>0){
+                    $query.=" AND ";
+                }
+                $query.="`".$key."`=:".$key;
+                $counter++;
+            }
+            //echo $query."\n";
         }
 
         return $this->toDatabase($query, $array);
     }
 
-    private function check_params(&$data, &$query = null)
+    private function check_params(&$data, &$query = "")
     {
 
         foreach ($data as $index => $item) {
@@ -166,7 +175,7 @@ trait OldTimerMethods
         //echo $query;
         //print_r($data);
     }
-    public function update($table, $data, $where)
+    private function update2($table, $data, $where)
     {
         return $this->arrayToDatabase($data, $table, $where);
     }
@@ -177,7 +186,7 @@ trait OldTimerMethods
      * @return bool
      * @throws Exception
      */
-    public function insert($table, $data)
+    private function insert2($table, $data)
     {
         return $this->arrayToDatabase($data, $table);
     }
@@ -186,7 +195,7 @@ trait OldTimerMethods
      * @param $table
      * @param $where
      */
-    public function delete($table, $where)
+    private function delete2($table, $where)
     {
         $sql = "DELETE FROM `" . $table . "` WHERE " . $this->get_where($where);
         return $this->toDatabase($sql);
@@ -217,6 +226,6 @@ trait OldTimerMethods
 
     public function last_insert_id()
     {
-        return $this->pdo->lastInsertId();
+        return $this->PDO->lastInsertId();
     }
 }

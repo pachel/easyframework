@@ -3,7 +3,7 @@ namespace Pachel\EasyFrameWork;
 
 Routing::instance()->get("*",[SmallController::class,"always"])->first();
 
-Routing::instance()->get("regex:^([a-z]{2})\/([a-z]{2})\/.*",
+Routing::instance()->get("regex:^api\/([a-z]{2})\/([a-z]{2})\/.*",
     function ($app,$lang,$kex){
     echo $lang."  ".$kex;
     exit();

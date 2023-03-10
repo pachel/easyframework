@@ -1,6 +1,6 @@
 <?php
 
-namespace Pachel\EasyFrameWork\DB\Interfaces;
+namespace Pachel\EasyFrameWork\DB\Modells;
 
 use Pachel\EasyFrameWork\Messages;
 
@@ -11,6 +11,11 @@ final class Config
     public string $username;
     public string $password;
     public string $charset = "utf8";
+
+    public bool $safemode;
+
+    public string $safefield;
+
     public function __construct(array $config)
     {
         foreach ($config AS $key => $value){
@@ -20,7 +25,7 @@ final class Config
             }
             $this->{$key} = $value;
         }
-        $vars = get_class_vars("Pachel\\EasyFrameWork\\DB\\Interfaces\\Config");
+        $vars = get_class_vars("Pachel\\EasyFrameWork\\DB\\Modells\\Config");
         foreach ($vars AS $name => $value){
             if(preg_match("/_/",$name)){
                 continue;

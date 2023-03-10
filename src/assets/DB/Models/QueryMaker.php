@@ -1,6 +1,6 @@
 <?php
 
-namespace Pachel\EasyFrameWork\DB\Interfaces;
+namespace Pachel\EasyFrameWork\DB\Modells;
 
 use Pachel\EasyFrameWork\DB\mySql;
 
@@ -38,20 +38,29 @@ final class queryMaker
         if ($query->select == "*" || empty($query->select)) {
             $sql .= "* ";
         } else {
+            $index = 0;
             foreach ($query->select as $counter => $item) {
+                if ($index > 0) {
+                    $sql .= ",";
+                }
+                $sql .= "`" . $counter . "`";
+                $index++;
+//                $sql .= $this->getCol($item);
+                //$sql .= $counter;
+            }
+        }
+        $sql .= " FROM ";
+        if (is_string($query->from)) {
+            $sql .= "`" . $query->from . "` ";
+        } else {
+            foreach ($query->from as $index => $table) {
                 if ($counter > 0) {
                     $sql .= ",";
                 }
-                $sql .= $this->getCol($item);
+                $sql .= $this->getTable($table);
             }
         }
-        $sql .= "FROM ";
-        foreach ($query->from as $index => $table) {
-            if ($counter > 0) {
-                $sql .= ",";
-            }
-            $sql .= $this->getTable($table);
-        }
+        $sql .= $this->makeWhere();
         $this->query = $sql;
     }
 
@@ -59,21 +68,36 @@ final class queryMaker
     {
 
     }
-
-    private function makeDelete(Query &$query)
-    {
-        $sql = "DELETE FROM ".$query->from." WHERE ";
-        foreach ($query->where AS $index => $item){
-            if(is_array($item)) {
-                if ($index > 0) {
-                    $sql .= "AND ";
+    private function makeWhere():string{
+        $sql = "";
+        if (!empty($query->where)) {
+            $sql = " WHERE ";
+            if (is_array($query->where)) {
+                $counter = 0;
+                foreach ($query->where as $key => $value) {
+                    if ($counter > 0) {
+                        $sql .= " AND ";
+                    }
+                    $sql .= "`" . $key . "`=:" . $key;
+                    $this->pdo_parameters[$key] = $value;
+                    $counter++;
                 }
-                $a = array_keys($item);
-                $sql.=$a[0]."=".$item[$a[0]];
+            }
+            elseif (is_string($query->where)){
+                $sql.= $query->where;
             }
         }
-        $this->query = $sql;
+        return $sql;
 
+    }
+//TODO: kell egy where maker is
+    private function makeDelete(Query &$query)
+    {
+
+        $sql = "DELETE FROM " . $query->from . " WHERE ";
+        $index = 0;
+        $sql .= $this->makeWhere();
+        $this->query = $sql;
     }
 
     private function getTable($data): string
@@ -83,6 +107,7 @@ final class queryMaker
 
     private function getCol($data): string
     {
+        $return = "";
         if (is_string($data)) {
             if (preg_match_all("/([^,]+)/", $data, $preg)) {
                 $return = "";
@@ -109,8 +134,9 @@ final class queryMaker
                 }
             }
         } elseif (is_array($data)) {
-            $return = $data[0]." AS `".$data[1]."` ";
+            $return = $data[0] . " AS `" . $data[1] . "` ";
         }
+
         return $return;
     }
 }

@@ -67,7 +67,9 @@ function exceptionHandler($exception) {
         );
     }
     // trace always ends with {main}
-    $result[] = '#' . ++$key . ' {main}';
+    if(isset($key)) {
+        $result[] = '#' . ++$key . ' {main}';
+    }
 
     // write tracelines into main template
     $msg = sprintf(
