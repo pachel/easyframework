@@ -1,8 +1,12 @@
 <?php
 
 namespace Pachel\EasyFrameWork\DB\Traits;
+
 use JetBrains\PhpStorm\Deprecated;
+use Pachel\EasyFrameWork\Base;
 use \PDO;
+use function Pachel\EasyFrameWork\_log;
+
 trait OldTimerMethods
 {
     private function fromDatabase2($sql, $field = NULL, $params = [], $id = null)
@@ -45,7 +49,7 @@ trait OldTimerMethods
         }
         if ($field == '@line') {
             if ($result->rowCount()) {
-                    $resultArray = $result->fetch($this->result_type);
+                $resultArray = $result->fetch($this->result_type);
                 return ($resultArray);
             } else {
                 return [];
@@ -80,18 +84,27 @@ trait OldTimerMethods
         return [];
     }
 
-    private function toDatabase($sql, $params = array())
+    private function toDatabase($sql, $params = array()): bool
     {
-        $mysql_queryPrepared = $this->PDO->prepare($sql);
-        $mysql_queryReturn = $mysql_queryPrepared->execute($params);
-        //do we have a db error?
-        $err = $mysql_queryReturn;
-        if (!$err) {
-            //error occured, show the error:
-            $error = $mysql_queryPrepared->errorInfo();
-            throw new \Exception("MYSQL ERROR: " . $error[2] . "\n");
+
+        //print_r($params);
+        //echo $sql."\n";
+        try {
+            $mysql_queryPrepared = $this->PDO->prepare($sql);
+            $mysql_queryReturn = $mysql_queryPrepared->execute($params);
+            //echo "true\n";
+            return true;
+        } catch (\Exception $exception) {
+            if (Base::instance()->env("app.test")) {
+                throw new \Exception($exception->getMessage(), $exception->getCode());
+            } else {
+                _log($exception->getMessage()."\n".print_r(debug_backtrace(),true));
+                return false;
+            }
+        } finally {
+
         }
-        return (true);
+
     }
 
     private function arrayToDatabase($array, $table, $id = array())
@@ -142,14 +155,14 @@ trait OldTimerMethods
             $query .= " WHERE " . $k[0] . "=:" . $k[0];
             $array[$k[0]] = $id[$k[0]];
             */
-            $query.=" WHERE ";
+            $query .= " WHERE ";
             $counter = 0;
-            foreach ($id AS $key => $value){
+            foreach ($id as $key => $value) {
                 $array[$key] = $value;
-                if($counter>0){
-                    $query.=" AND ";
+                if ($counter > 0) {
+                    $query .= " AND ";
                 }
-                $query.="`".$key."`=:".$key;
+                $query .= "`" . $key . "`=:" . $key;
                 $counter++;
             }
             //echo $query."\n";
@@ -175,6 +188,7 @@ trait OldTimerMethods
         //echo $query;
         //print_r($data);
     }
+
     private function update2($table, $data, $where)
     {
         return $this->arrayToDatabase($data, $table, $where);

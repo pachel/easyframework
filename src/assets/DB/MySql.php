@@ -16,6 +16,7 @@ use Pachel\EasyFrameWork\DB\callBacks\setCallback;
 use Pachel\EasyFrameWork\DB\callBacks\updateCallback;
 use Pachel\EasyFrameWork\DB\callBacks\whereCallback;
 use Pachel\EasyFrameWork\DB\Modells\Config;
+use Pachel\EasyFrameWork\DB\Modells\dataModel;
 use Pachel\EasyFrameWork\DB\Modells\queryMaker;
 use Pachel\EasyFrameWork\DB\Modells\Query;
 use Pachel\EasyFrameWork\DB\Traits\OldTimerMethods;
@@ -60,7 +61,7 @@ class mySql
      *
      * @return bool
      */
-    protected function connect(): void
+    protected function connect():void
     {
         $CONFIG = Base::instance()->env("MYSQL");
         if ($CONFIG == "" || !is_array($CONFIG)) {
@@ -87,7 +88,7 @@ class mySql
      * @return selectCallback
      */
 
-    private function select(object $object): selectCallback
+    public function select(object $object): selectCallback
     {
         $this->QUERY = new Query();
         $this->QUERY->method = self::QUERY_TYPE_SELECT;
@@ -111,9 +112,9 @@ class mySql
         return new paramsCallback($this);
     }
 
-    protected function exec()
+    protected function exec():bool
     {
-        $this->toDatabase($this->QUERY->sql_query, $this->QUERY->pdo_parameters);
+        return $this->toDatabase($this->QUERY->sql_query, $this->QUERY->pdo_parameters);
     }
 
     protected function set($data)
@@ -126,7 +127,7 @@ class mySql
         return new setCallback($this);
     }
 
-    private function arrayFromObject($data): array
+    private function arrayFromObject($data)
     {
         if (!is_object($data)) {
             return $data;
@@ -134,41 +135,64 @@ class mySql
         if (method_exists($data, "tableName")) {
             $this->QUERY->from = $data->tableName();
             $primary = $data->primaryName();
-            if (isset($data->{$primary}) && $this->QUERY->method == self::QUERY_TYPE_UPDATE) {
+            $delete = "";
+            if (isset($data->{$primary})) {
+                $delete = $primary;
+            }
+            /**
+             * Ha van primary akkor az a where feltétel, és gégrehajtódik a meghívás után
+             */
+            if (isset($data->{$primary})) {
                 $this->QUERY->where = [$primary => $data->{$primary}];
-                unset($data->{$primary});
+
             } elseif (!isset($data->{$primary}) && $this->QUERY->method == self::QUERY_TYPE_UPDATE) {
-                throw new \Exception(Messages::MYSQL_OBJECT_UPDATE_NOT_ALLOWED[0], Messages::MYSQL_OBJECT_UPDATE_NOT_ALLOWED[1]);
-            } elseif (!isset($data->{$primary}) && $this->QUERY->method == self::QUERY_TYPE_DELETE && !$this->QUERY->safemode) {
-                throw new \Exception(Messages::MYSQL_OBJECT_DELETE_NOT_ALLOWED[0], Messages::MYSQL_OBJECT_DELETE_NOT_ALLOWED[1]);
-            } elseif ($this->QUERY->method == self::QUERY_TYPE_DELETE) {
+                //throw new \Exception(Messages::MYSQL_OBJECT_UPDATE_NOT_ALLOWED[0], Messages::MYSQL_OBJECT_UPDATE_NOT_ALLOWED[1]);
+                /*} elseif (!isset($data->{$primary}) && $this->QUERY->method == self::QUERY_TYPE_DELETE && !$this->QUERY->safemode) {
+                    throw new \Exception(Messages::MYSQL_OBJECT_DELETE_NOT_ALLOWED[0], Messages::MYSQL_OBJECT_DELETE_NOT_ALLOWED[1]);*/
+            } elseif ($this->QUERY->method == self::QUERY_TYPE_DELETE && isset($data->{$primary})) {
+                $this->QUERY->where = [$primary => $data->{$primary}];
                 foreach ($data as $key => $value) {
                     $this->QUERY->where[$key] = $value;
                 }
             }
         }
-        foreach ($data as $key => $value) {
-            $array[$key] = $value;
+
+        $vars = get_class_vars($data->className());
+        $array = [];
+        foreach ($vars as $key => $value) {
+            if ($this->QUERY->method == self::QUERY_TYPE_SELECT) {
+                if ($data->isVisible($key)) {
+                    $array[$key] = "0";
+                }
+            } elseif (isset($data->{$key}) && $delete != $key) {
+                $array[$key] = $data->{$key};
+            }
+            //$array[$key] = $value;
         }
+        //    print_r($array);
         return $array;
     }
 
     protected function id(int $id)
     {
+        //return $this->where(["id"=>$id]);
+
         $this->QUERY->where = ["id" => $id];
 
         if ($this->QUERY->method == self::QUERY_TYPE_DELETE) {
             if ($this->QUERY->safemode) {
-                $this->update2($this->QUERY->from, [$this->CONFIG->safefield => 1], ["id" => $id]);
+                return $this->update2($this->QUERY->from, [$this->CONFIG->safefield => 1], ["id" => $id]);
                 return;
             } else {
                 //TODO:
                 $query = $this->makeQuery();
+                return $this->toDatabase($query->query,$query->pdo_parameters);
 
             }
         } elseif ($this->QUERY->method == self::QUERY_TYPE_UPDATE) {
             // $query = $this->makeQuery();
-            $this->update2($this->QUERY->from, $this->QUERY->pdo_parameters, $this->QUERY->where);
+
+            return $this->update2($this->QUERY->from, $this->QUERY->pdo_parameters, $this->QUERY->where);
         } elseif ($this->QUERY->method == self::QUERY_TYPE_SELECT) {
             return new idCallback($this);
         }
@@ -176,7 +200,7 @@ class mySql
         //echo $query->query . "\n";
     }
 
-    public function insert($table)
+    public function insert(object $table)
     {
         $this->QUERY = new Query();
         $this->QUERY->method = self::QUERY_TYPE_INSERT;
@@ -193,7 +217,7 @@ class mySql
         return new insertCallback($this);
     }
 
-    public function delete($table, $safe = null)
+    public function delete( $table, $safe = null)
     {
 
         if (!is_bool($safe)) {
@@ -217,55 +241,100 @@ class mySql
         } elseif (!is_string($table)) {
             throw new \Exception(Messages::PARAMETER_TYPE_ERROR);
         }
-
         $this->QUERY->from = $table;
-
         return new deleteCallback($this);
     }
 
 
+    /**
+     * Az update használható egy DataModel objektumból szármartatott másik osztály paramtéterként
+     * átadásával, így nem kell semilyen más feltételt megadnunk, egyszerűen csak szerepelnie kell
+     * az elsődleges kulcsnak az elemben
+     * @see https://github.com/pachel/easyframework#mysql
+     * @param strign|dataModel $table
+     * @return updateCallback|void
+     * @throws \Exception
+     */
     public function update($table)
     {
         $this->QUERY = new Query();
         $this->QUERY->method = self::QUERY_TYPE_UPDATE;
+
         if (is_object($table)) {
             $data = $this->arrayFromObject($table);
             if (!empty($this->QUERY->where) && !empty($data)) {
                 $this->update2($this->QUERY->from, $data, $this->QUERY->where);
+            } /**
+             * Ha nem üres az átadott objektum, de nincs primary id, akkor meg kell adni a feltételt
+             */
+            elseif (!empty($data)) {
+                $this->QUERY->pdo_parameters = $data;
+                return new setCallback($this);
+            } else {
+                goto endupdate;
+                //throw new \Exception();
             }
             return;
         } elseif (!is_string($table)) {
             throw new \Exception(Messages::PARAMETER_TYPE_ERROR);
         }
         $this->QUERY->from = $table;
-
+        endupdate:
         return new updateCallback($this);
     }
 
     protected function nonamedelete(string $field, $param)
     {
+
+        //return $this->where([$field=>$param]);
         if ($this->QUERY->safemode) {
             $this->update2($this->QUERY->from, [$this->CONFIG->safefield => 1], [$field => $param]);
+        } else {
+            if (empty($param)) {
+                throw new \Exception(Messages::MYSQL_NOT_ALLOWED_WITHOUT_WHERE[0], Messages::MYSQL_OBJECT_DELETE_NOT_ALLOWED[1]);
+            }
+            $this->QUERY->where = [$field => $param];
+            $query = $this->makeQuery();
+            $this->toDatabase($query->query, $query->pdo_parameters);
         }
-        //$this->delete($this->QUERY->from,$this->QUERY->safemode)->where([$field=>$param]);
-
     }
 
-    protected function nonameset(string $field, $param): setCallback
+    /**
+     * Arra jó, hogy az UPDATE parancsal bármelyik mezőnévre egy metódusként tudunk
+     * hivatkozni és paraméterként be tudjuk állítani az értékét
+     * @param string $field
+     * @param mixed $param
+     * @return setCallback
+     * @example update("users")->name("john Do")->id(1)
+     */
+    protected function nonameset(string $field, $param)
     {
-        $this->QUERY->pdo_parameters = [$field => $param];
-        return new setCallback($this);
+        // $this->QUERY->pdo_parameters = [$field => $param];
+        return $this->set([$field => $param]);
+        //return new setCallback($this);
         //$this->update2($this->QUERY->from,[$field=>$param],[$field=>$param]);
     }
 
-    protected function nonamewhere(string $field, $param): void
+    /**
+     * Ez is olyan tip-top kis metódus, mint a nonameset, csak ez a where kiváltására használható!
+     * @param string $field
+     * @param $param
+     */
+    protected function nonamewhere(string $field, $param)
     {
-        $this->where([$field => $param]);
-    }
+        return $this->where([$field => $param]);
+        /*
+      //  $this->where([$field => $param]);
+        if($this->QUERY->method == self::QUERY_TYPE_SELECT){
+            $this->QUERY->where = [$field=>$param];
+            return new whereCallback($this);
+        }
+        elseif ($this->QUERY->method == self::QUERY_TYPE_DELETE){
+            //todo:
+        }
+        elseif($this->QUERY->method == self::QUERY_TYPE_UPDATE){
 
-    protected function name()
-    {
-
+        }*/
     }
 
     protected function from(...$arguments)
@@ -276,24 +345,24 @@ class mySql
 
     protected function where($where)
     {
+        $this->QUERY->where = $where;
         $where = $this->arrayFromObject($where);
+        if(is_array($where)){
+            $this->QUERY->pdo_parameters = array_merge($this->QUERY->pdo_parameters,$where);
+        }
 
-        if ($this->QUERY->method == self::QUERY_TYPE_DELETE) {
-            if ($this->QUERY->safemode) {
-                $this->update2($this->QUERY->from, [$this->CONFIG->safefield => 1], $where);
-            } else {
-                //TODO:
-                $query = $this->makeQuery();
-            }
-        }
-        if ($this->QUERY->method == self::QUERY_TYPE_UPDATE) {
-            $this->update2($this->QUERY->from, $this->QUERY->pdo_parameters, $where);
-        }
         if ($this->QUERY->method == self::QUERY_TYPE_SELECT) {
             $this->QUERY->where = $where;
             return new whereCallback($this);
         }
-        $this->QUERY->where = $where;
+        else{
+            if (isset($this->QUERY->safemode) && $this->QUERY->safemode) {
+                $this->QUERY->method = self::QUERY_TYPE_UPDATE;
+            }
+
+            $query = $this->makeQuery();
+            $this->toDatabase($query->query, $query->pdo_parameters);
+        }
     }
 
 
@@ -312,9 +381,10 @@ class mySql
 
         if ($this->QUERY->method == self::QUERY_TYPE_QUERY) {
             return $this->fromDatabase2($this->QUERY->sql_query, $type, $this->QUERY->pdo_parameters);
-        } elseif($this->QUERY->method == self::QUERY_TYPE_SELECT) {
+        } elseif ($this->QUERY->method == self::QUERY_TYPE_SELECT) {
             $query = $this->makeQuery();
-            return $this->fromDatabase2($query->query,$type,$query->pdo_parameters);
+            //echo $query->query;
+            return $this->fromDatabase2($query->query, $type, $query->pdo_parameters);
         }
         return [];
     }

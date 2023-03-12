@@ -17,4 +17,5 @@ trait GetSetProperties{
             $this->{$name} = $value;
         }
     }
+
 }
