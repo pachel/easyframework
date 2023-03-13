@@ -1,5 +1,6 @@
 #!/usr/bin/env php
 <?php
+use Pachel\EasyFrameWork\Base;
 if (isset($GLOBALS['_composer_autoload_path'])) {
     define('PHPUNIT_COMPOSER_INSTALL', $GLOBALS['_composer_autoload_path']);
 
@@ -15,5 +16,10 @@ if (isset($GLOBALS['_composer_autoload_path'])) {
 
     unset($file);
 }
-
 require PHPUNIT_COMPOSER_INSTALL;
+$app = Base::instance();
+$app->loadConfigFromTmp();
+$Routes = \Pachel\EasyFrameWork\Routing::instance();
+$Routes->cli("create-model",[\Pachel\EasyFrameWork\Cli\CliScripts::class,"createModel"]);
+$app->run();
+

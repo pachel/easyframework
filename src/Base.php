@@ -10,6 +10,7 @@ use Pachel\EasyFrameWork\Routing;
 
 //set_error_handler("Pachel\\EasyFrameWork\\errorHandler");
 set_exception_handler("Pachel\\EasyFrameWork\\exceptionHandler");
+
 class Base extends Prefab
 {
     protected mySql $DB;
@@ -19,9 +20,11 @@ class Base extends Prefab
      */
     private static $vars;
 
-    private const CACHE_DIR = __DIR__."/../tmp/cache/";
+    private const CACHE_DIR = __DIR__ . "/../tmp/cache/";
 
-    private const CONFIG_REQUIREMENT = ["APP.URL","APP.UI"];
+    private const TMP_DIR = __DIR__ . "/../tmp/";
+
+    private const CONFIG_REQUIREMENT = ["APP.URL", "APP.UI"];
     /**
      * Gyári változók, ezeken a felhasználó nem módosíthatja a $this->set() függvénnyel, ezek kulcsai mindig nagybetűssé lesznek alakítva
      */
@@ -38,7 +41,7 @@ class Base extends Prefab
     /**
      * Azok a változók, ahol meg kell nézni, hogy a karakterlánc végén egy perjel legyen
      */
-    const VAR_PATHS = ["app.ui", "app.views", "app.url", "app.logs","app.temp"];
+    const VAR_PATHS = ["app.ui", "app.views", "app.url", "app.logs", "app.temp"];
     /**
      * Ezeket a függvényeket kitiltjuk a temple fájlokból
      */
@@ -47,6 +50,7 @@ class Base extends Prefab
      * @var Routes $routes
      */
     public $routes;
+
     /**
      * PHP 5 allows developers to declare constructor methods for classes.
      * Classes which have a constructor method call this method on each newly-created object,
@@ -60,22 +64,26 @@ class Base extends Prefab
      */
     public function __construct()
     {
-        $this->set("EFW.configured",false);
+        $this->set("EFW.configured", false);
     }
 
-    protected function setdbProperty(){
-        if(empty($this->DB)) {
+    protected function setdbProperty()
+    {
+        if (empty($this->DB)) {
             $this->DB = new mySql();
         }
         return $this->DB;
     }
-    private function get($key,$fromself = true)
+
+
+
+    private function get($key, $fromself = true)
     {
         if (empty($key)) {
             return self::$vars;
         }
         if (!preg_match("/^((.*)\.(.+))|(.+)$/i", $key, $preg)) {
-            new \Exception("Invalid key format!",100);
+            new \Exception("Invalid key format!", 100);
         }
 
         if (empty($preg[1])) {
@@ -100,7 +108,7 @@ class Base extends Prefab
         return "";
     }
 
-    private function set($key, $value,$fromself = true): void
+    private function set($key, $value, $fromself = true): void
     {
         if ($this->is_systemvarialbe($key) && !$fromself) {
             throw new \Exception("Readonly variables: " . $key);
@@ -111,9 +119,9 @@ class Base extends Prefab
 //        echo $key."\n";
         if (empty($preg[1])) {
             if ($this->is_systemvarialbe($key)) {
-                if(is_array($value)){
+                if (is_array($value)) {
                     $v2 = [];
-                    foreach ($value AS $k => $item){
+                    foreach ($value as $k => $item) {
                         $v2[strtoupper($k)] = $item;
                     }
                     $value = $v2;
@@ -152,7 +160,7 @@ class Base extends Prefab
 
     public function run()
     {
-        if (!$this->env("EFW.CONFIGURED")){
+        if (!$this->env("EFW.CONFIGURED")) {
             throw new \Exception(Messages::BASE_APP_NOT_CONFIGURED);
         }
 
@@ -166,7 +174,7 @@ class Base extends Prefab
         //$routes = $this->routes->find("path")->notequal("*")->object();
         $View = new View($this->routes);
 
-        if(!$View->show2() && Routing::instance()->get_request_method()!="CLI"){
+        if (!$View->show2() && Routing::instance()->get_request_method() != "CLI") {
             $this->send_error(404);
         }
         /*
@@ -185,51 +193,55 @@ class Base extends Prefab
         }*/
 
     }
-    public function send_error(int $code){
+
+    public function send_error(int $code)
+    {
         ob_clean();
-        $status =  Functions::HTTPStatus($code);
+        $status = Functions::HTTPStatus($code);
         header($status["error"]);
-        if(defined("START_EFW")) {
+        if (defined("START_EFW")) {
             $timelog = $this->env("app.temp") . "timelog.log";
             $line = date("Y-m-d H:i:s") . " " . round(microtime(true) - START_EFW, 3) . " " . $this->env("server.request_uri") . "\n";
             file_put_contents($timelog, $line, FILE_APPEND);
         }
         exit();
     }
-    protected function runRoutesWithoutTeplate(){
+
+    protected function runRoutesWithoutTeplate()
+    {
         $torun = $this->routes->find("onlyone")->equal(true)->get();
 
-        if(!empty($torun)){
+        if (!empty($torun)) {
             /**
              * Csak azokat futtatjuk, ahol az onlyone paraméter be lettállítva
              */
             $this->run_routes($torun);
-            $this->set("EFW.onlyone",true);
+            $this->set("EFW.onlyone", true);
 
-        }
-        else {
+        } else {
             /**
              * Csak azoknak a rootoknak a futtatása, amikhez nincs template
              */
 
             $torun = $this->routes->search(["template" => ""]);
             $this->run_routes($torun);
-            $this->set("EFW.onlyone",false);
+            $this->set("EFW.onlyone", false);
         }
     }
+
     #[Deprecated]
-    private function run_all_routes(){
+    private function run_all_routes()
+    {
 
         $torun = $this->routes->find("onlyone")->equal(true)->get();
-        if(!empty($torun)){
+        if (!empty($torun)) {
             /**
              * Csak azokat futtatjuk, ahol az onlyone paraméter be lettállítva
              */
             $this->run_routes($torun);
-            $this->set("EFW.onlyone",true);
+            $this->set("EFW.onlyone", true);
 
-        }
-        else {
+        } else {
             /**
              * Csak azoknak a rootoknak a futtatása, amikhez nincs template
              */
@@ -241,7 +253,7 @@ class Base extends Prefab
 
             $torun = $this->routes->find("template")->notequal("")->get();
             $this->run_routes($torun);
-            $this->set("EFW.onlyone",false);
+            $this->set("EFW.onlyone", false);
         }
     }
 
@@ -249,41 +261,43 @@ class Base extends Prefab
      * @param Route[] $torun
      * @return void
      */
-    protected function run_routes(&$torun){
+    protected function run_routes(&$torun)
+    {
 
-        foreach ($torun AS &$item){
-            if(Auth::instance()->is_authorised($item)) {
+        foreach ($torun as &$item) {
+            if (Auth::instance()->is_authorised($item)) {
                 $this->run_content($item);
             }
         }
     }
+
     /**
      * @param Route $route
      * @return bool
      */
     use returnObjectArray;
+
     function run_content(&$route)
     {
         /**
          * @var Route $route
          */
 
-        if(empty($route)){
+        if (empty($route)) {
             return false;
         }
 
-        if(is_array($route->url_variables)) {
+        if (is_array($route->url_variables)) {
             $arguments = array_merge([$this], $route->url_variables);
-        }
-        else{
+        } else {
             $arguments = [$this];
         }
-        if($route->before != ""){
-            $this->run_only_functions($route,$arguments,"before");
+        if ($route->before != "") {
+            $this->run_only_functions($route, $arguments, "before");
         }
 
 
-        $this->run_only_functions($route,$arguments);
+        $this->run_only_functions($route, $arguments);
         /*
         if (is_object($route->object)) {
             $return = call_user_func($route->object,$this);
@@ -304,31 +318,33 @@ class Base extends Prefab
             return false;
         }*/
     }
-    private function run_only_functions(&$route,$arguments,$object_name = "object"){
+
+    private function run_only_functions(&$route, $arguments, $object_name = "object")
+    {
         $object = $this->get_object($route->{$object_name});
-        if(empty($object)){
+        if (empty($object)) {
             return false;
         }
         /**
          * HA osztályt hívunk meg
          */
-        if (!empty($object->className)){
+        if (!empty($object->className)) {
             $classname = $object->className;
             $class = new $classname($this);
             $return = $class->{$object->methodName}(...$arguments);
-            $this->routes->find("path")->equal($route->path)->set(["return"=>$return]);
+            $this->routes->find("path")->equal($route->path)->set(["return" => $return]);
             return true;
-        }
-        /**
+        } /**
          * Névtelen függvény hívása
          */
-        elseif (!empty($object->object)){
-            $return = call_user_func_array($object->object,$arguments);
-            $this->routes->find("path")->equal($route->path)->set(["return"=>$return]);
+        elseif (!empty($object->object)) {
+            $return = call_user_func_array($object->object, $arguments);
+            $this->routes->find("path")->equal($route->path)->set(["return" => $return]);
             return true;
         }
         return false;
     }
+
     /**
      * @return mixed
      */
@@ -338,7 +354,7 @@ class Base extends Prefab
         if (count($args) == 1) {
             return $this->get($args[0]);
         } elseif (count($args) == 2) {
-            $this->set($args[0], $args[1],false);
+            $this->set($args[0], $args[1], false);
         } else {
 
         }
@@ -353,7 +369,6 @@ class Base extends Prefab
         $this->set("STATUS", $args[0]);
 
     }
-
 
 
     public function reroute($route)
@@ -385,7 +400,26 @@ class Base extends Prefab
 
         return $self;
     }
+    protected function loadConfigFromTmp()
+    {
+        $temp_config = self::TMP_DIR."config.tmp";
+        if(!file_exists($temp_config)){
+            throw new \Exception(Messages::BASE_APP_NOT_CONFIGURED);
+        }
+        self::$vars = unserialize(file_get_contents($temp_config));
+        $this->setvars();
+        $this->cache = new Cache(self::CACHE_DIR);
+        $this->set("EFW.configured", true);
+    }
 
+    private function saveConfigToTmp()
+    {
+        $temp_config = self::TMP_DIR."config.tmp";
+        if(!is_writable(self::TMP_DIR)){
+            return;
+        }
+        file_put_contents($temp_config,serialize($this->env(null)));
+    }
     public function config($config): void
     {
         if (is_array($config)) {
@@ -397,12 +431,11 @@ class Base extends Prefab
         }
 
 
-
         foreach ($config as $key => &$item) {
             /**
              * Ha tömb az érték
              */
-            if(is_array($item)) {
+            if (is_array($item)) {
                 foreach ($item as $key2 => &$item2) {
                     if ($this->is_path($key . "." . $key2)) {
                         $item2 = Functions::checkSlash($item2);
@@ -415,36 +448,42 @@ class Base extends Prefab
             }
             $this->set($key, $item);
         }
-        foreach (self::CONFIG_REQUIREMENT AS $item){
-            if($this->get($item) == ""){
+        foreach (self::CONFIG_REQUIREMENT as $item) {
+            if ($this->get($item) == "") {
                 throw new \Exception(Messages::BASE_CONFIG_MISSING_REQ);
             }
         }
-        if($this->get("APP.VIews")==""){
-            $this->set("app.views",$this->get("app.ui"));
+        if ($this->get("APP.VIews") == "") {
+            $this->set("app.views", $this->get("app.ui"));
         }
+        $this->saveConfigToTmp();
         $this->setvars();
         $this->cache = new Cache(self::CACHE_DIR);
-        $this->set("EFW.configured",true);
+        $this->set("EFW.configured", true);
     }
-    public function get_loaded_routes():Routes{
+
+    public function get_loaded_routes(): Routes
+    {
         return $this->routes;
     }
+
     public function __set(string $name, $value): void
     {
-        $this->env($name,$value);
+        $this->env($name, $value);
     }
+
     public function __get(string $name)
     {
-        if($name == "DB"){
+        if ($name == "DB") {
             //file_put_contents(Base::instance()->env("app.logs")."memory.log",date("Y-m-d H:i:s")." ".round(memory_get_usage()/1024/1024,3)."\n",FILE_APPEND);
             return $this->setdbProperty();
         }
         return $this->env($name);
     }
+
     public function __call(string $name, array $arguments)
     {
-        if(method_exists($this,$name)){
+        if (method_exists($this, $name)) {
             return $this->{$name}(...$arguments);
         }
     }
@@ -452,7 +491,7 @@ class Base extends Prefab
 
 /**
  * @method void reroute(string $path);
- * @method mixed env(string $name,mixed $value);
+ * @method mixed env(string $name, mixed $value);
  * @method Routes get_loaded_routes();
  * @method void send_error(int $code);
  * @property  mySql DB;
@@ -462,5 +501,7 @@ class Base extends Prefab
  * @property  array SERVER;
  * @property  Cache $cache;
  */
-abstract class BaseAsArgument{}
+abstract class BaseAsArgument
+{
+}
 //return Base::instance();

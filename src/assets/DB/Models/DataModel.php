@@ -19,7 +19,7 @@ abstract class dataModel
      *
      * @var string|null $_tablename
      */
-    protected $_tablename = null;
+    protected string $_tablename = "";
     /**
      *
      * @var string $_primary
@@ -27,11 +27,13 @@ abstract class dataModel
     protected string $_primary = "id";
     protected array $_not_visibles = [];
     protected string $_classname = dataModel::class;
+
+    protected string $_safefield = "";
     private mySql $_db;
 
     public function __construct($values = null)
     {
-        if (is_null($this->_tablename)) {
+        if (empty($this->_tablename)) {
             $this->_tablename = $this->setTableName(get_called_class());
         }
         $this->_classname = get_called_class();
