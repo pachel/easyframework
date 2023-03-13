@@ -8,7 +8,7 @@ use Pachel\EasyFrameWork\DB\callBacks\Methods\getMethods;
 use Pachel\EasyFrameWork\DB\callBacks\Methods\idMethod;
 use Pachel\EasyFrameWork\DB\callBacks\Methods\whereMethod;
 
-final class selectCallback extends CallbackBase
+class selectCallback extends CallbackBase
 {
     use whereMethod;
     use getMethods;

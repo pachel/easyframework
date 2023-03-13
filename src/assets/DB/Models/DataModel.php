@@ -1,6 +1,6 @@
 <?php
 
-namespace Pachel\EasyFrameWork\DB\Modells;
+namespace Pachel\EasyFrameWork\DB\Models;
 
 use mysql_xdevapi\Schema;
 use Pachel\EasyFrameWork\Base;
@@ -107,6 +107,9 @@ abstract class dataModel
      */
     public function getById(int $id){
         return $this->_db->select(new $this->_classname())->id($id)->line();
+    }
+    public function getByEmail(string $email){
+        return $this->_db->select(new $this->_classname())->email($email)->line();
     }
 
     /**

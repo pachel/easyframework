@@ -15,10 +15,10 @@ use Pachel\EasyFrameWork\DB\callBacks\selectCallback;
 use Pachel\EasyFrameWork\DB\callBacks\setCallback;
 use Pachel\EasyFrameWork\DB\callBacks\updateCallback;
 use Pachel\EasyFrameWork\DB\callBacks\whereCallback;
-use Pachel\EasyFrameWork\DB\Modells\Config;
-use Pachel\EasyFrameWork\DB\Modells\dataModel;
-use Pachel\EasyFrameWork\DB\Modells\queryMaker;
-use Pachel\EasyFrameWork\DB\Modells\Query;
+use Pachel\EasyFrameWork\DB\Models\Config;
+use Pachel\EasyFrameWork\DB\Models\dataModel;
+use Pachel\EasyFrameWork\DB\Models\queryMaker;
+use Pachel\EasyFrameWork\DB\Models\Query;
 use Pachel\EasyFrameWork\DB\Traits\OldTimerMethods;
 use Pachel\EasyFrameWork\Functions;
 use Pachel\EasyFrameWork\Messages;
@@ -94,7 +94,6 @@ class mySql
         $this->QUERY->method = self::QUERY_TYPE_SELECT;
         $this->QUERY->select = $this->arrayFromObject($object);
         //$this->QUERY->select = "*";
-
         return new selectCallback($this);
     }
 
@@ -117,17 +116,17 @@ class mySql
         return $this->toDatabase($this->QUERY->sql_query, $this->QUERY->pdo_parameters);
     }
 
-    protected function set($data)
+    protected function set(array $data)
     {
         if ($this->QUERY->method == self::QUERY_TYPE_INSERT) {
-            $this->insert2($this->QUERY->from, $this->arrayFromObject($data));
-            return;
+            return $this->insert2($this->QUERY->from, $this->arrayFromObject($data));
         }
         $this->QUERY->pdo_parameters = $this->arrayFromObject($data);
         return new setCallback($this);
     }
 
-    private function arrayFromObject($data)
+
+    protected function arrayFromObject($data)
     {
         if (!is_object($data)) {
             return $data;
@@ -150,10 +149,11 @@ class mySql
                 /*} elseif (!isset($data->{$primary}) && $this->QUERY->method == self::QUERY_TYPE_DELETE && !$this->QUERY->safemode) {
                     throw new \Exception(Messages::MYSQL_OBJECT_DELETE_NOT_ALLOWED[0], Messages::MYSQL_OBJECT_DELETE_NOT_ALLOWED[1]);*/
             } elseif ($this->QUERY->method == self::QUERY_TYPE_DELETE && isset($data->{$primary})) {
+                /*
                 $this->QUERY->where = [$primary => $data->{$primary}];
                 foreach ($data as $key => $value) {
                     $this->QUERY->where[$key] = $value;
-                }
+                }*/
             }
         }
 
@@ -176,13 +176,12 @@ class mySql
     protected function id(int $id)
     {
         //return $this->where(["id"=>$id]);
-
+        //file_put_contents(__DIR__."/../../../examples/logs/unit.txt","sd",FILE_APPEND);
         $this->QUERY->where = ["id" => $id];
 
         if ($this->QUERY->method == self::QUERY_TYPE_DELETE) {
             if ($this->QUERY->safemode) {
                 return $this->update2($this->QUERY->from, [$this->CONFIG->safefield => 1], ["id" => $id]);
-                return;
             } else {
                 //TODO:
                 $query = $this->makeQuery();
@@ -190,31 +189,28 @@ class mySql
 
             }
         } elseif ($this->QUERY->method == self::QUERY_TYPE_UPDATE) {
-            // $query = $this->makeQuery();
-
             return $this->update2($this->QUERY->from, $this->QUERY->pdo_parameters, $this->QUERY->where);
         } elseif ($this->QUERY->method == self::QUERY_TYPE_SELECT) {
             return new idCallback($this);
         }
 
-        //echo $query->query . "\n";
     }
 
     public function insert(object $table)
     {
         $this->QUERY = new Query();
         $this->QUERY->method = self::QUERY_TYPE_INSERT;
-        if (is_object($table)) {
+     //   if (is_object($table)) {
             $data = $this->arrayFromObject($table);
             if (!empty($data)) {
-                $this->insert2($this->QUERY->from, $data);
+                return $this->insert2($this->QUERY->from, $data);
             }
-            return;
-        } elseif (!is_string($table)) {
+            return false;
+        /*} elseif (!is_string($table)) {
             throw new \Exception(Messages::PARAMETER_TYPE_ERROR);
         }
         $this->QUERY->from = $table;
-        return new insertCallback($this);
+        return new insertCallback($this);*/
     }
 
     public function delete( $table, $safe = null)
@@ -251,7 +247,7 @@ class mySql
      * átadásával, így nem kell semilyen más feltételt megadnunk, egyszerűen csak szerepelnie kell
      * az elsődleges kulcsnak az elemben
      * @see https://github.com/pachel/easyframework#mysql
-     * @param strign|dataModel $table
+     * @param strign|dataModel|bool $table
      * @return updateCallback|void
      * @throws \Exception
      */
@@ -263,8 +259,9 @@ class mySql
         if (is_object($table)) {
             $data = $this->arrayFromObject($table);
             if (!empty($this->QUERY->where) && !empty($data)) {
-                $this->update2($this->QUERY->from, $data, $this->QUERY->where);
-            } /**
+                return $this->update2($this->QUERY->from, $data, $this->QUERY->where);
+            }
+            /**
              * Ha nem üres az átadott objektum, de nincs primary id, akkor meg kell adni a feltételt
              */
             elseif (!empty($data)) {
@@ -346,7 +343,8 @@ class mySql
     protected function where($where)
     {
         $this->QUERY->where = $where;
-        $where = $this->arrayFromObject($where);
+        //$where = $this->arrayFromObject($where);
+
         if(is_array($where)){
             $this->QUERY->pdo_parameters = array_merge($this->QUERY->pdo_parameters,$where);
         }
@@ -361,7 +359,7 @@ class mySql
             }
 
             $query = $this->makeQuery();
-            $this->toDatabase($query->query, $query->pdo_parameters);
+            return $this->toDatabase($query->query, $query->pdo_parameters);
         }
     }
 
@@ -383,7 +381,6 @@ class mySql
             return $this->fromDatabase2($this->QUERY->sql_query, $type, $this->QUERY->pdo_parameters);
         } elseif ($this->QUERY->method == self::QUERY_TYPE_SELECT) {
             $query = $this->makeQuery();
-            //echo $query->query;
             return $this->fromDatabase2($query->query, $type, $query->pdo_parameters);
         }
         return [];

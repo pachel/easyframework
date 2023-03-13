@@ -1,6 +1,6 @@
 <?php
 
-namespace Pachel\EasyFrameWork\DB\Modells;
+namespace Pachel\EasyFrameWork\DB\Models;
 
 use Pachel\EasyFrameWork\Messages;
 
@@ -25,7 +25,7 @@ final class Config
             }
             $this->{$key} = $value;
         }
-        $vars = get_class_vars("Pachel\\EasyFrameWork\\DB\\Modells\\Config");
+        $vars = get_class_vars("Pachel\\EasyFrameWork\\DB\\Models\\Config");
         foreach ($vars AS $name => $value){
             if(preg_match("/_/",$name)){
                 continue;

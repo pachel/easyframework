@@ -2,30 +2,18 @@
 namespace Pachel\EasyFrameWork;
 
 use Pachel\EasyFrameWork\DB\Modells\dataModel;
+use \UserModel;
 
 
 $db = clone Base::instance()->DB;
 
-/**
- * @method \Pachel\EasyFrameWork\UserModell getById(int $id)
- */
-class UserModell extends dataModel{
-    protected $_tablename = "m_felhasznalok";
-    protected array $_not_visibles = ["jelszo"];
-    public int $id;
-    public int $deleted;
-    public int $id_dolgozok;
-    public int $id_csoportok;
-    public string $nev;
-    public string $email;
-    public string $jelszo;
-}
+
 
 
 /**
- * @var UserModell $result
+ * @var UserModel $result
  */
-$User = new UserModell(["id"=>1]);
+$User = new UserModel(["id"=>1]);
 $result = $db->select($User)->line();
 echo $result->nev."\n";
 $User->nev = "Teszt";
@@ -33,11 +21,14 @@ $db->update($User);
 $result = $db->select($User)->line();
 echo $result->nev."\n";
 
-$User = new UserModell();
-$result = $db->select($User)->where(["id"=>1])->line();
-echo $result->nev."\n";
-$User->nev = "Teszt2";
-$db->update($User)->where(["id"=>1]);
+$User = new UserModel();
+if($result = $db->select($User)->where(["id"=>1])->line())
+    echo $result->nev."\n";
+
+$User->nev = "Teszt2d2";
+if($db->update($User)->where(["id"=>1])){
+    echo "sikeres\n";
+}
 $result = $db->select($User)->where(["id"=>1])->line();
 echo $result->nev."\n";
 
@@ -45,9 +36,14 @@ $db->update("m_felhasznalok")->set(["nev"=>"TEszt3"])->where(["id"=>1]);
 $result = $db->query("SELECT nev FROM m_felhasznalok WHERE id=1")->line();
 echo $result->nev."\n";
 
-if($db->query("SELECT *FROM m_felhasznssalok")->exec()){
-    echo "Minden fasza\n";
+if(!$db->query("SELECT *FROM m_felhasznalok")->exec()){
+    echo "Valami hiba van\n";
 }
+$result = $User->getById(11);
+echo $result->nev."\n";
+
+$User->id = 5;
+$db->select($User)->line();
 
 exit();
 

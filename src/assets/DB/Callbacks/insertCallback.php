@@ -14,7 +14,7 @@ final class insertCallback extends CallbackBase
      * @param array|object $data
      * @return void
      */
-    public function set($data){
+    public function set($data):bool{
         $this->class->set($data);
     }
 }

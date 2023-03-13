@@ -1,6 +1,6 @@
 <?php
 
-namespace Pachel\EasyFrameWork\DB\Modells;
+namespace Pachel\EasyFrameWork\DB\Models;
 
 use Pachel\EasyFrameWork\DB\mySql;
 use Pachel\EasyFrameWork\Messages;

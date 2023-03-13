@@ -6,6 +6,7 @@ use JetBrains\PhpStorm\Deprecated;
 use Pachel\EasyFrameWork\Base;
 use \PDO;
 use function Pachel\EasyFrameWork\_log;
+use function Pachel\EasyFrameWork\exceptionHandler;
 
 trait OldTimerMethods
 {
@@ -84,23 +85,19 @@ trait OldTimerMethods
         return [];
     }
 
-    private function toDatabase($sql, $params = array()): bool
+    private function toDatabase($sql, $params = array())
     {
 
         //print_r($params);
         //echo $sql."\n";
         try {
             $mysql_queryPrepared = $this->PDO->prepare($sql);
-            $mysql_queryReturn = $mysql_queryPrepared->execute($params);
-            //echo "true\n";
-            return true;
+            return $mysql_queryPrepared->execute($params);
+
         } catch (\Exception $exception) {
-            if (Base::instance()->env("app.test")) {
-                throw new \Exception($exception->getMessage(), $exception->getCode());
-            } else {
-                _log($exception->getMessage()."\n".print_r(debug_backtrace(),true));
-                return false;
-            }
+            exceptionHandler($exception,true);
+            return false;
+
         } finally {
 
         }

@@ -36,7 +36,7 @@ function errorHandler($errno, $errstr, $errfile, $errline, $contex) {
     /* Don't execute PHP internal error handler */
     return true;
 }
-function exceptionHandler($exception) {
+function exceptionHandler($exception,$onlylog = false) {
 
     // these are our templates
     $traceline = "#%s %s(%s): %s(%s)";
@@ -83,10 +83,13 @@ function exceptionHandler($exception) {
         $exception->getLine()
     );
     $msg = str_pad("",150,"-")."\n\n".$msg."\n";
-    if(Base::instance()->env("APP.TEST") || Base::instance()->env("APP.LOGS")==""){
+    if(Base::instance()->env("APP.TEST") && !$onlylog){
         echo "<pre>";
         print_r($msg);
         echo "</pre>";
+    }
+    elseif($onlylog){
+        _log($msg);
     }
     else{
         _log($msg);
