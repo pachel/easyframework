@@ -28,7 +28,9 @@ class Messages
         MYSQL_WHERE_IS_EMPTY              = ["MYSQL ERROR: Nincs megadva  a WHERE",20107],
 
 
+
         MODEL_PROPERY_NOT_EXISTS        = ["MODEL ERROR: '%s' is not defined property in '%s' class!",20200],
+        MODEL_METHOD_NOT_EXISTS         = ["MODEL ERROR: '%s' is not defined method in '%s' class!",20201],
         GG ="";
 
 }

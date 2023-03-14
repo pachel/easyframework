@@ -15,5 +15,6 @@ namespace Pachel\EasyFrameWork\DB\Models {
 
         public array $pdo_parameters = [];
         public bool $safemode;
+        public string $safefield;
     }
 }

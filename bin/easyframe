@@ -1,9 +1,12 @@
 #!/usr/bin/env php
 <?php
 use Pachel\EasyFrameWork\Base;
+if(PHP_MAJOR_VERSION.PHP_MINOR_VERSION<74){
+    echo "PHP 7.4 kell!";
+    die(1);
+}
 if (isset($GLOBALS['_composer_autoload_path'])) {
     define('PHPUNIT_COMPOSER_INSTALL', $GLOBALS['_composer_autoload_path']);
-
     unset($GLOBALS['_composer_autoload_path']);
 } else {
     foreach (array(__DIR__ . '/../../autoload.php', __DIR__ . '/../vendor/autoload.php', __DIR__ . '/vendor/autoload.php') as $file) {

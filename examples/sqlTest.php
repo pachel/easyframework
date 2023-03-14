@@ -14,10 +14,14 @@ $db = clone Base::instance()->DB;
  * @var UserModel $result
  */
 $User = new UserModel(["id"=>1]);
+
+$User->nev = "Teszt";
+if($db->update($User)){
+    echo "SIKER";
+}
+exit();
 $result = $db->select($User)->line();
 echo $result->nev."\n";
-$User->nev = "Teszt";
-$db->update($User);
 $result = $db->select($User)->line();
 echo $result->nev."\n";
 

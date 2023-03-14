@@ -2,7 +2,6 @@
 
 namespace Pachel\EasyFrameWork\DB\Models;
 
-use mysql_xdevapi\Schema;
 use Pachel\EasyFrameWork\Base;
 use Pachel\EasyFrameWork\DB\callBacks\whereCallback;
 use Pachel\EasyFrameWork\DB\mySql;
@@ -28,7 +27,8 @@ abstract class dataModel
     protected array $_not_visibles = [];
     protected string $_classname = dataModel::class;
 
-    protected string $_safefield = "";
+    protected string $_safefield;
+    protected bool $_safemode;
     private mySql $_db;
 
     public function __construct($values = null)
@@ -37,18 +37,22 @@ abstract class dataModel
             $this->_tablename = $this->setTableName(get_called_class());
         }
         $this->_classname = get_called_class();
-        if(!empty($values) && (is_array($values) || is_object($values))){
-            foreach ($values AS $key => $value){
-                if(property_exists($this,$key)) {
+        if (!empty($values) && (is_array($values) || is_object($values))) {
+            foreach ($values as $key => $value) {
+                if (property_exists($this, $key)) {
                     $this->{$key} = $value;
-                }
-                else{
-                    throw new \Exception(sprintf(Messages::MODEL_PROPERY_NOT_EXISTS[0],$key,$this->_classname),Messages::MODEL_PROPERY_NOT_EXISTS[1]);
+                } else {
+                    throw new \Exception(sprintf(Messages::MODEL_PROPERY_NOT_EXISTS[0], $key, $this->_classname), Messages::MODEL_PROPERY_NOT_EXISTS[1]);
                 }
             }
         }
-        $this->_db =  clone Base::instance()->DB;
-
+        if (empty($this->_safefield)) {
+            $this->_safefield = Base::instance()->env("mysql.safefield");
+        }
+        if (empty($this->_safemode)) {
+            $this->_safemode = Base::instance()->env("mysql.safemode");
+        }
+        $this->_db = clone Base::instance()->DB;
     }
 
     /**
@@ -95,6 +99,16 @@ abstract class dataModel
         return $this->_classname;
     }
 
+    protected function safeMode(): bool
+    {
+        return $this->_safemode;
+    }
+
+    protected function safeField(): string
+    {
+        return $this->_safefield;
+    }
+
     protected function isVisible(string $property_name): bool
     {
         if (in_array($property_name, $this->_not_visibles)) {
@@ -107,10 +121,13 @@ abstract class dataModel
      * @param int $id
      * @return mixed
      */
-    public function getById(int $id){
+    public function getById(int $id)
+    {
         return $this->_db->select(new $this->_classname())->id($id)->line();
     }
-    public function getByEmail(string $email){
+
+    public function getByEmail(string $email)
+    {
         return $this->_db->select(new $this->_classname())->email($email)->line();
     }
 
@@ -118,15 +135,19 @@ abstract class dataModel
      * @param string|array|object $where
      * @return whereCallback
      */
-    public function select($where):whereCallback{
+    public function select($where): whereCallback
+    {
         $this->_db->select(new $this->_classname())->where($where);
         return new whereCallback($this->_db);
     }
 
     public function __call(string $name, array $arguments)
     {
-        if(method_exists($this,$name)){
+        if (method_exists($this, $name)) {
             return $this->$name(...$arguments);
+        }
+        else{
+            throw new \Exception(sprintf(Messages::MODEL_PROPERY_NOT_EXISTS[0], $name, $this->_classname), Messages::MODEL_PROPERY_NOT_EXISTS[1]);
         }
     }
 }

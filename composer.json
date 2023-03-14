@@ -21,6 +21,6 @@
         "phpunit/phpunit": "^9.6"
     },
     "bin": [
-        "easyframe"
+      "bin/easyframe"
     ]
 }

@@ -71,6 +71,7 @@ class mySql
         $this->CONFIG = $config;
         $db_dsn = 'mysql:host=' . $config->host . ';dbname=' . $config->database . ";charset=" . $config->charset;
         $this->PDO = new \PDO($db_dsn, $config->username, $config->password, null);
+        $this->PDO->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
         self::$CONNECTED = true;
     }
 
@@ -133,6 +134,11 @@ class mySql
         }
         if (method_exists($data, "tableName")) {
             $this->QUERY->from = $data->tableName();
+            /**
+             * A modelben beállított értékeket kell betölteni
+             */
+            $this->QUERY->safemode = $data->safeMode();
+            $this->QUERY->safefield = $data->safeField();
             $primary = $data->primaryName();
             $delete = "";
             if (isset($data->{$primary})) {
@@ -155,6 +161,9 @@ class mySql
                     $this->QUERY->where[$key] = $value;
                 }*/
             }
+        }
+        else{
+            throw new \Exception(Messages::PARAMETER_TYPE_ERROR);
         }
 
         $vars = get_class_vars($data->className());
@@ -215,9 +224,10 @@ class mySql
 
     public function delete( $table, $safe = null)
     {
-
+        $param = false;
         if (!is_bool($safe)) {
             $safe = $this->CONFIG->safemode;
+            $param = true;
         }
         $this->QUERY = new Query();
         $this->QUERY->method = self::QUERY_TYPE_DELETE;
@@ -226,8 +236,9 @@ class mySql
         if (is_object($table)) {
             $this->arrayFromObject($table);
             if (!empty($this->QUERY->where)) {
-                if ($safe) {
-                    $this->update2($this->QUERY->from, [$this->CONFIG->safefield => 1], $this->QUERY->where);
+                $safemode = ($param?$safe:$this->QUERY->safemode);
+                if ($safemode) {
+                    $this->update2($this->QUERY->from, [$this->QUERY->safefield => 1], $this->QUERY->where);
                 } else {
                     $query = $this->makeQuery();
                     $this->query($query->query)->params($query->pdo_parameters)->exec();

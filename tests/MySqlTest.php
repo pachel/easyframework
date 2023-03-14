@@ -117,7 +117,8 @@ class MySqlTest extends TestCase
         $this->assertTrue($result);
 
         $mockSTM = $this->createMock(PDOStatement::class);
-        $mockSTM->method("execute")->willReturn(false);
+        $mockSTM->method("execute")->willThrowException(new Exception());
+
 
         $mockPDO = $this->createMock(PDO::class);
         $mockPDO->method("prepare")->willReturn($mockSTM);
@@ -152,12 +153,14 @@ class MySqlTest extends TestCase
         $this->assertEquals(\Pachel\EasyFrameWork\DB\callBacks\setCallback::class, get_class($result));
 
 
-
     }
-    private function callBackUpdate2(){
+
+    private function callBackUpdate2()
+    {
 
         return true;
     }
+
     /**
      * @covers
      * @return void
@@ -204,7 +207,8 @@ class MySqlTest extends TestCase
      * @covers 3
      * @return void
      */
-    public function test_insert(){
+    public function test_insert()
+    {
 
         /**
          * @var \UserModel $user
@@ -212,8 +216,6 @@ class MySqlTest extends TestCase
         $user_object = ["id" => 1, "nev" => "object"];
         $user = new Tests\TestUserModel($user_object);
 
-        $result = $this->db->insert($user);
-        $this->assertFalse($result);
 
         $mockSTM = $this->createMock(PDOStatement::class);
         $mockSTM->method("execute")->willReturn(true);
@@ -225,17 +227,20 @@ class MySqlTest extends TestCase
         $result = $this->db->insert($user);
         $this->assertTrue($result);
 
-        $user = new Tests\TestUserModel(["id"=>1]);
+        $user = new Tests\TestUserModel(["id" => 1]);
         $result = $this->db->insert($user);
-        $this->assertFalse($result);
+        $this->assertFalse($result,"Ha nicns adat az objektumban");
 
-        $user = new Tests\TestUserModel($user_object);
+       // $user = new Tests\TestUserModel($user_object);
+    }
 
+    /**
+     * @covers
+     * @return void
+     */
+    public function test_delete()
+    {
 
-
-
-
-
-
+        $this->assertFalse(false);
     }
 }

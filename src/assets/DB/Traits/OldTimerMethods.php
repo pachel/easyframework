@@ -89,21 +89,21 @@ trait OldTimerMethods
     {
 
         //print_r($params);
-        //echo $sql."\n";
         try {
             $mysql_queryPrepared = $this->PDO->prepare($sql);
-            $mysql_queryPrepared->execute($params);
-            if($mysql_queryPrepared->errorCode()=="00000"){
-                return true;
-            }
-            exceptionHandler(new \Exception($mysql_queryPrepared->errorInfo()[2],$mysql_queryPrepared->errorInfo()[1]),true);
-            return false;
+
+            return $mysql_queryPrepared->execute($params);
+
+            //print_r($mysql_queryPrepared->errorInfo());
+         //   return true;
+           // if($mysql_queryPrepared->errorCode()=="00000"){
+              //  return true;
+            //}
+            //exceptionHandler(new \Exception($mysql_queryPrepared->errorInfo()[2],$mysql_queryPrepared->errorInfo()[1]),true);
+//            return false;
         } catch (\Exception $exception) {
             exceptionHandler($exception,true);
             return false;
-
-        } finally {
-
         }
 
     }
