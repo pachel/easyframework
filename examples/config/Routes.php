@@ -9,7 +9,7 @@ Routing::instance()->get("regex:^api\/([a-z]{2})\/([a-z]{2})\/.*",
     exit();
 })->allow();
 Routing::instance()->get("/",function ($app){$app->reroute("teszt");})->allow();
-
+Routing::instance()->ajax("ajax",[SmallController::class,"ajax"])->json()->allow();
 Routing::instance()->get("dashboard/login",[SmallController::class,"dashboard3"])->view("login/layout.register.php");
 Routing::instance()->get("teszt",[SmallController::class,"dashboard2"])->view("layout.index.php");
 Routing::instance()->get("dashboard/{category}/{id}.html",[SmallController::class,"dashboard"])->view("layout.index.php")->allow();

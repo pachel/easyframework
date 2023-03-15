@@ -48,6 +48,16 @@ trait routeMethods
     {
         return $this->method("cli",$path,$object);
     }
+
+    /**
+     * @param string $path
+     * @param $object
+     * @return RouteMethodCallback
+     */
+    public function ajax(string $path,$object = null):RouteMethodCallback
+    {
+        return $this->method("ajax",$path,$object);
+    }
 }
 
 trait viewMethod

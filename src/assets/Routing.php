@@ -19,7 +19,7 @@ class Routing extends Prefab
 
     protected const
         METHOD_ALIASES = [
-        "method" => ["get", "post", "cli", "postget"],
+        "method" => ["get", "post", "cli", "postget","ajax"],
         "generate" => ["json"]
     ];
 
@@ -358,6 +358,9 @@ class Routing extends Prefab
         $method = Base::instance()->env("SERVER.REQUEST_METHOD");
         if (empty($method)) {
             return "CLI";
+        }
+        if(Base::instance()->env("SERVER.HTTP_X_REQUESTED_WITH") == "XMLHttpRequest"){
+            $method = "AJAX";
         }
         return $method;
     }

@@ -37,6 +37,9 @@ class SmallController{
     {
         $this->app = $app;
     }
+    public function ajax(){
+        return ["teszt"=>1];
+    }
     public function authorise($path):bool
     {
         if($path == "multiples"){
@@ -100,7 +103,7 @@ Base::instance()->config(__DIR__ . "/config/App.php");
 Base::instance()->config(__DIR__ . "/config/dev_App.php");
 $Base = Base::instance();
 require __DIR__."/config/Routes.php";
-require __DIR__."/sqlTest.php";
+//require __DIR__."/sqlTest.php";
 
 
 
