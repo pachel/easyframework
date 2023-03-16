@@ -3,6 +3,7 @@
 namespace Pachel\EasyFrameWork\DB\Models;
 
 use Pachel\EasyFrameWork\Base;
+use Pachel\EasyFrameWork\DB\callBacks\setCallback;
 use Pachel\EasyFrameWork\DB\callBacks\whereCallback;
 use Pachel\EasyFrameWork\DB\mySql;
 use Pachel\EasyFrameWork\Messages;
@@ -126,6 +127,11 @@ abstract class dataModel
         return $this->_db->select(new $this->_classname())->id($id)->line();
     }
 
+    public function set(array $set):setCallback
+    {
+        return $this->_db->update($this->_tablename)->set($set);
+    }
+
     public function getByEmail(string $email)
     {
         return $this->_db->select(new $this->_classname())->email($email)->line();
@@ -140,13 +146,18 @@ abstract class dataModel
         $this->_db->select(new $this->_classname())->where($where);
         return new whereCallback($this->_db);
     }
+    public function update(){
+
+    }
+    public function insert(){
+
+    }
 
     public function __call(string $name, array $arguments)
     {
         if (method_exists($this, $name)) {
             return $this->$name(...$arguments);
-        }
-        else{
+        } else {
             throw new \Exception(sprintf(Messages::MODEL_PROPERY_NOT_EXISTS[0], $name, $this->_classname), Messages::MODEL_PROPERY_NOT_EXISTS[1]);
         }
     }

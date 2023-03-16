@@ -13,8 +13,18 @@ $db = clone Base::instance()->DB;
 /**
  * @var UserModel $result
  */
-$User = new UserModel(["id"=>1]);
+$User = new UserModel();
+/**
+ * @var array{id:int} $z
+ */
 
+$User->set(["nev"=>1])->deleted(0);
+$data = new \UserData();
+$data->id_dolgozok = 1;
+$data->nev = "jhkljasd";
+$User->insert($data);
+$User->update($data)->id(1);
+exit();
 $User->nev = "Teszt";
 if($db->update($User)){
     echo "SIKER";

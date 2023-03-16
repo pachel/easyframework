@@ -204,7 +204,7 @@ class mySql
         }
 
     }
-
+/*
     public function insert(object $table)
     {
         $this->QUERY = new Query();
@@ -220,7 +220,7 @@ class mySql
         }
         $this->QUERY->from = $table;
         return new insertCallback($this);*/
-    }
+    //}
 
     public function delete( $table, $safe = null)
     {
@@ -266,15 +266,13 @@ class mySql
     {
         $this->QUERY = new Query();
         $this->QUERY->method = self::QUERY_TYPE_UPDATE;
-
+/*
         if (is_object($table)) {
             $data = $this->arrayFromObject($table);
             if (!empty($this->QUERY->where) && !empty($data)) {
                 return $this->update2($this->QUERY->from, $data, $this->QUERY->where);
             }
-            /**
-             * Ha nem üres az átadott objektum, de nincs primary id, akkor meg kell adni a feltételt
-             */
+
             elseif (!empty($data)) {
                 $this->QUERY->pdo_parameters = $data;
                 return new setCallback($this);
@@ -283,7 +281,7 @@ class mySql
                 //throw new \Exception();
             }
             return;
-        } elseif (!is_string($table)) {
+        } else*/if (!is_string($table)) {
             throw new \Exception(Messages::PARAMETER_TYPE_ERROR);
         }
         $this->QUERY->from = $table;
@@ -359,6 +357,7 @@ class mySql
         if(is_array($where)){
             $this->QUERY->pdo_parameters = array_merge($this->QUERY->pdo_parameters,$where);
         }
+
 
         if ($this->QUERY->method == self::QUERY_TYPE_SELECT) {
             $this->QUERY->where = $where;

@@ -103,9 +103,7 @@ Base::instance()->config(__DIR__ . "/config/App.php");
 Base::instance()->config(__DIR__ . "/config/dev_App.php");
 $Base = Base::instance();
 require __DIR__."/config/Routes.php";
-//require __DIR__."/sqlTest.php";
-
-
+require __DIR__."/sqlTest.php";
 
 
 

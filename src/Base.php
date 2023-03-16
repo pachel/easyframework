@@ -497,7 +497,6 @@ class Base extends Prefab
  * @property  mySql DB;
  * @property  array POST;
  * @property  array GET;
- * @property  array SESSION;
  * @property  array SERVER;
  * @property  Cache $cache;
  */
