@@ -29,6 +29,7 @@ $User->nev = "Teszt";
 if($db->update($User)){
     echo "SIKER";
 }
+
 exit();
 $result = $db->select($User)->line();
 echo $result->nev."\n";

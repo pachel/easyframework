@@ -2,6 +2,7 @@
 
 namespace Pachel\EasyFrameWork\DB;
 
+use JetBrains\PhpStorm\Deprecated;
 use mysql_xdevapi\Exception;
 use Pachel\EasyFrameWork\Base;
 use Pachel\EasyFrameWork\DB\callBacks\deletCallback;
@@ -89,7 +90,8 @@ class mySql
      * @return selectCallback
      */
 
-    public function select(object $object): selectCallback
+
+    protected function select(object $object): selectCallback
     {
         $this->QUERY = new Query();
         $this->QUERY->method = self::QUERY_TYPE_SELECT;
@@ -204,7 +206,7 @@ class mySql
         }
 
     }
-/*
+    #[Deprecated]
     public function insert(object $table)
     {
         $this->QUERY = new Query();
@@ -220,8 +222,8 @@ class mySql
         }
         $this->QUERY->from = $table;
         return new insertCallback($this);*/
-    //}
-
+    }
+    #[Deprecated]
     public function delete( $table, $safe = null)
     {
         $param = false;
@@ -262,11 +264,12 @@ class mySql
      * @return updateCallback|void
      * @throws \Exception
      */
+    #[Deprecated]
     public function update($table)
     {
         $this->QUERY = new Query();
         $this->QUERY->method = self::QUERY_TYPE_UPDATE;
-/*
+
         if (is_object($table)) {
             $data = $this->arrayFromObject($table);
             if (!empty($this->QUERY->where) && !empty($data)) {
@@ -281,14 +284,14 @@ class mySql
                 //throw new \Exception();
             }
             return;
-        } else*/if (!is_string($table)) {
+        } elseif (!is_string($table)) {
             throw new \Exception(Messages::PARAMETER_TYPE_ERROR);
         }
         $this->QUERY->from = $table;
         endupdate:
         return new updateCallback($this);
     }
-
+    #[Deprecated]
     protected function nonamedelete(string $field, $param)
     {
 
@@ -313,6 +316,7 @@ class mySql
      * @return setCallback
      * @example update("users")->name("john Do")->id(1)
      */
+    #[Deprecated]
     protected function nonameset(string $field, $param)
     {
         // $this->QUERY->pdo_parameters = [$field => $param];
@@ -326,6 +330,7 @@ class mySql
      * @param string $field
      * @param $param
      */
+    #[Deprecated]
     protected function nonamewhere(string $field, $param)
     {
         return $this->where([$field => $param]);
@@ -342,7 +347,7 @@ class mySql
 
         }*/
     }
-
+    #[Deprecated]
     protected function from(...$arguments)
     {
         $this->QUERY->from = $arguments;
