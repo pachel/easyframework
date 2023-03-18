@@ -8,11 +8,10 @@ namespace Pachel\EasyFrameWork\DB\Models {
         public $select;
         public $from;
         public $where;
-        public $orderby;
-        public $groupby;
-        public $limit;
+
         public string $sql_query = "";
 
+        public array $set = [];
         public array $pdo_parameters = [];
         public bool $safemode;
         public string $safefield;

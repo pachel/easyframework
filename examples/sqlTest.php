@@ -18,12 +18,25 @@ $User = new UserModel();
  * @var array{id:int} $z
  */
 
-$User->set(["nev"=>1])->deleted(0);
+//$User->set(["nev"=>1])->deleted(0);
 $data = new \UserData();
 $data->id_dolgozok = 1;
 $data->nev = "jhkljasd";
+
+$data->email = "asdasdasd";
+//$User->params([0,1])->update("deleted=? AND ceg=?")->set($data);
+//$User->params(["id"=>1])->delete("")
 $User->insert($data);
-$User->update($data)->id(1);
+$result = $User->params(["id_csoportok"=>3])->select("id_csoportok=:id_csoportok")->array();
+$User->delete(["id"=>3]);
+
+print_r($result);
+exit();
+$data->deleted=1;
+unset($data->id);
+print_r($data);
+$User->update($data)->email("asdasdasd");
+$User->update(["id_csoportok"=>1])->id(69);
 exit();
 $User->nev = "Teszt";
 if($db->update($User)){

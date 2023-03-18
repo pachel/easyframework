@@ -7,7 +7,11 @@ trait getMethods
     public function line(){
         return $this->class->get("line");
     }
-    public function array():array{
+
+    /**
+     * @return array|null
+     */
+    public function array(){
         return $this->class->get("row");
     }
 

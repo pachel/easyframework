@@ -4,13 +4,9 @@ define(microtime(true), "START_EFW");
 session_start();
 ob_start();
 
-use Pachel\EasyFrameWork\Base;
-use Pachel\EasyFrameWork\DB\callBacks\deleteCallback;
-use Pachel\EasyFrameWork\DB\callBacks\updateCallback;
+
 use Pachel\EasyFrameWork\DB\Modells\dataModel;
-use Pachel\EasyFrameWork\DB\mySql;
-use Pachel\EasyFrameWork\Routing;
-use Pachel\EasyFrameWork\Auth;
+
 require_once __DIR__."/../vendor/autoload.php";
 //requ
 //ire_once __DIR__."/config/Routes.php";

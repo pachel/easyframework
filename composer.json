@@ -2,8 +2,11 @@
     "name": "pachel/easyframework",
     "description": "Easy Framework",
     "type": "library",
+    "autoload-dev": {
+        "classmap": ["examples/"]
+    },
     "autoload": {
-        "classmap": ["src/","examples/"],
+        "classmap": ["src/"],
         "files": ["src/assets/ErrorHandler.php"]
     },
     "authors": [

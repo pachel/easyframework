@@ -10,7 +10,7 @@ use function Pachel\EasyFrameWork\exceptionHandler;
 
 trait OldTimerMethods
 {
-    private function fromDatabase2($sql, $field = NULL, $params = [], $id = null)
+    public function fromDatabase($sql, $field = NULL, $params = [], $id = null)
     {
 
         if (!$sql) {
@@ -85,39 +85,51 @@ trait OldTimerMethods
         return [];
     }
 
-    private function toDatabase($sql, $params = array())
+    private function setSafeParams(&$sql, &$params):void
+    {
+        if($this->QUERY->method != self::QUERY_TYPE_SELECT){
+            return;
+        }
+
+    }
+
+    public function toDatabase($sql, $params = array()): bool
     {
 
         //print_r($params);
         try {
+           // $this->setSafeParams($sql, $params);
             $mysql_queryPrepared = $this->PDO->prepare($sql);
-
-            return $mysql_queryPrepared->execute($params);
+            $ret = $mysql_queryPrepared->execute($params);
+            if (is_numeric($this->PDO->lastInsertId()) && $this->PDO->lastInsertId() != 0) {
+                $this->_last_id = $this->PDO->lastInsertId();
+            }
+            return $ret;
 
             //print_r($mysql_queryPrepared->errorInfo());
-         //   return true;
-           // if($mysql_queryPrepared->errorCode()=="00000"){
-              //  return true;
+            //   return true;
+            // if($mysql_queryPrepared->errorCode()=="00000"){
+            //  return true;
             //}
             //exceptionHandler(new \Exception($mysql_queryPrepared->errorInfo()[2],$mysql_queryPrepared->errorInfo()[1]),true);
 //            return false;
         } catch (\Exception $exception) {
-            exceptionHandler($exception,true);
+            exceptionHandler($exception, true);
             return false;
         }
 
     }
 
-    private function arrayToDatabase($array, $table, $id = array())
+    public function arrayToDatabase($array, $table, $id = array())
     {
         if (!is_array($array)) {
-            throw new Exception('$array is not Array()');
+            throw new  \Exception('$array is not Array()');
         }
         if (empty($table)) {
-            throw new Exception('$table parameter is empty!');
+            throw new \Exception('$table parameter is empty!');
         }
         if (gettype($table) != "string") {
-            throw new Exception('$table parameter type is not string!');
+            throw new \Exception('$table parameter type is not string!');
         }
         $this->check_params($array);
 
@@ -190,7 +202,7 @@ trait OldTimerMethods
         //print_r($data);
     }
 
-    private function update2($table, $data, $where)
+    public function update($table, $data, $where)
     {
         return $this->arrayToDatabase($data, $table, $where);
     }
@@ -201,7 +213,7 @@ trait OldTimerMethods
      * @return bool
      * @throws Exception
      */
-    private function insert2($table, $data)
+    public function insert($table, $data): bool
     {
         return $this->arrayToDatabase($data, $table);
     }
@@ -210,7 +222,7 @@ trait OldTimerMethods
      * @param $table
      * @param $where
      */
-    private function delete2($table, $where)
+    private function delete($table, $where)
     {
         $sql = "DELETE FROM `" . $table . "` WHERE " . $this->get_where($where);
         return $this->toDatabase($sql);
@@ -241,6 +253,6 @@ trait OldTimerMethods
 
     public function last_insert_id()
     {
-        return $this->PDO->lastInsertId();
+        return $this->_last_id;
     }
 }

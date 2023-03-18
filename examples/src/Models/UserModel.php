@@ -9,10 +9,11 @@ use Pachel\EasyFrameWork\DB\Models\dataModel;
 class UserModel extends dataModel{
     protected string $_tablename = "m_felhasznalok";
     protected array $_not_visibles = ["jelszo"];
+    protected string $_modelclass = UserData::class;
 
 }
 
-class UserData extends stdClass {
+class UserData {
     public int $id;
     public int $deleted;
     public int $id_dolgozok;

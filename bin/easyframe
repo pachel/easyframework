@@ -1,8 +1,11 @@
 #!/usr/bin/env php
 <?php
 use Pachel\EasyFrameWork\Base;
+use Pachel\EasyFrameWork\Cli\CliScripts;
+use Pachel\EasyFrameWork\Routing;
+
 if(PHP_MAJOR_VERSION.PHP_MINOR_VERSION<74){
-    echo "PHP 7.4 kell!";
+    echo "PHP 7.4 kell minimum!";
     die(1);
 }
 if (isset($GLOBALS['_composer_autoload_path'])) {
@@ -12,7 +15,6 @@ if (isset($GLOBALS['_composer_autoload_path'])) {
     foreach (array(__DIR__ . '/../../autoload.php', __DIR__ . '/../vendor/autoload.php', __DIR__ . '/vendor/autoload.php') as $file) {
         if (file_exists($file)) {
             define('PHPUNIT_COMPOSER_INSTALL', $file);
-
             break;
         }
     }
@@ -22,7 +24,7 @@ if (isset($GLOBALS['_composer_autoload_path'])) {
 require PHPUNIT_COMPOSER_INSTALL;
 $app = Base::instance();
 $app->loadConfigFromTmp();
-$Routes = \Pachel\EasyFrameWork\Routing::instance();
-$Routes->cli("create-model",[\Pachel\EasyFrameWork\Cli\CliScripts::class,"createModel"]);
+$Routes = Routing::instance();
+$Routes->cli("create-model",[CliScripts::class,"createModel"]);
 $app->run();
 

@@ -3,6 +3,7 @@
 namespace Pachel\EasyFrameWork\DB\Models;
 
 use Pachel\EasyFrameWork\DB\mySql;
+use Pachel\EasyFrameWork\Functions;
 use Pachel\EasyFrameWork\Messages;
 
 /**
@@ -25,13 +26,13 @@ final class queryMaker
     public function __construct(Query $query)
     {
         switch ($query->method) {
-            case mySql::QUERY_TYPE_SELECT:
+            case dataModel::QUERY_TYPE_SELECT:
                 $this->makeSelect($query);
                 break;
-            case mySql::QUERY_TYPE_DELETE:
+            case dataModel::QUERY_TYPE_DELETE:
                 $this->makeDelete($query);
                 break;
-            case mySql::QUERY_TYPE_UPDATE:
+            case dataModel::QUERY_TYPE_UPDATE:
                 $this->makeUpdate($query);
                 break;
         }
@@ -83,38 +84,50 @@ final class queryMaker
     {
         $this->query = "UPDATE ".$query->from." SET ";
         $counter = 0;
-        foreach ($query->pdo_parameters AS $key => $value){
+        foreach ($query->set AS $key => $value){
             if($counter>0){
                 $this->query.=",";
             }
             $this->query.="`".$key."`=:".$key;
+            $this->pdo_parameters[$key] = $value;
             $counter++;
         }
         $this->query.=$this->makeWhere($query);
-        $this->pdo_parameters = $query->pdo_parameters;
+       // $this->pdo_parameters = $query->pdo_parameters;
     }
 
     /**
      * A lekérdezés WHERE részét generálja le
      * @return string
      */
-    private function makeWhere($query):string{
+    private function makeWhere(Query $query):string{
         $sql = "";
         if (!empty($query->where)) {
             $sql = " WHERE ";
+            $counter = 0;
             if (is_array($query->where)) {
-                $counter = 0;
                 foreach ($query->where as $key => $value) {
                     if ($counter > 0) {
                         $sql .= " AND ";
                     }
+
                     $sql .= "`" . $key . "`=:" . $key;
                     $this->pdo_parameters[$key] = $value;
                     $counter++;
                 }
             }
             elseif (is_string($query->where)){
+                //$this->checkParams($query);
+                $counter++;
+                $this->mergePdo($query->pdo_parameters);
                 $sql.= $query->where;
+            }
+            if($query->safemode && $query->method == dataModel::QUERY_TYPE_SELECT){
+                if($counter>0){
+                    $sql.=" AND";
+                }
+                $sql.=" `".$query->safefield."`=:".$query->safefield;
+                $this->pdo_parameters[$query->safefield] = 0;
             }
         }
         else{
@@ -123,7 +136,26 @@ final class queryMaker
         return $sql;
 
     }
+    private function checkParams(Query &$query){
+        if(empty($query->pdo_parameters)){
+            return;
+        }
+        foreach ($query->pdo_parameters AS $key => $values){
+            if(!is_numeric($key)){
+                continue;
+            }
+            unset($query->pdo_parameters[$key]);
+            $key = Functions::get_random_string(5);
+            $query->pdo_parameters[$key] = $values;
 
+            //$query->where = preg_replace("/(.){0,3}\?(.){0,3}/","$1:".$key."$2",$query->where);
+        }
+        print_r($query);
+        exit();
+    }
+    private function mergePdo(array $pdo){
+        $this->pdo_parameters = array_merge($this->pdo_parameters,$pdo);
+    }
 
     private function makeDelete(Query &$query)
     {
