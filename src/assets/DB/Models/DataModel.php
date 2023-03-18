@@ -160,8 +160,10 @@ abstract class dataModel
      */
     public function select($where):whereCallback
     {
-
-
+        $this->newQuery(true);
+        $this->_query->method = self::QUERY_TYPE_SELECT;
+        $this->_query->where = $where;
+        return new whereCallback($this);
     }
 
     /**
