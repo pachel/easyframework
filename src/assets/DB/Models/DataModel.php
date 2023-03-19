@@ -163,9 +163,12 @@ abstract class dataModel
      * @param string|array|object $where
      * @return whereCallback|null
      */
-    public function select($where): whereCallback
+    public function select($where,$safe = null): whereCallback
     {
-        $this->_query = $this->newQuery($this->_safemode);
+        if (!is_bool($safe)) {
+            $safe = $this->_safemode;
+        }
+        $this->_query = $this->newQuery($safe);
         $this->_query->method = self::QUERY_TYPE_SELECT;
         $this->_query->where = $where;
         return new whereCallback($this);
@@ -177,8 +180,11 @@ abstract class dataModel
      * @return bool|updateCallback
      * @throws \Exception
      */
-    public function update($data)
+    public function update($data,$safe = null)
     {
+        if (!is_bool($safe)) {
+            $safe = $this->_safemode;
+        }
         $where = [];
         $data = $this->_dataToArray($data, false, $where);
         if (empty($data)) {
@@ -187,7 +193,7 @@ abstract class dataModel
         if (!empty($where)) {
             return $this->_db->update($this->_tablename, $data, $where);
         }
-        $this->_query = $this->newQuery($this->_safemode);
+        $this->_query = $this->newQuery($safe);
         $this->_query->method = self::QUERY_TYPE_UPDATE;
         $this->_query->set = $data;
         return new updateCallback($this);
