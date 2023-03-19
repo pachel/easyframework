@@ -6,7 +6,7 @@ use Pachel\EasyFrameWork\Base;
 use Pachel\EasyFrameWork\DB\callBacks\DataModel\makeUpdateCallback;
 use Pachel\EasyFrameWork\DB\callBacks\DataModel\paramsCallback;
 use Pachel\EasyFrameWork\DB\callBacks\DataModel\makeSelectCallback;
-use Pachel\EasyFrameWork\DB\callBacks\setCallback;
+use Pachel\EasyFrameWork\DB\callBacks\DataModel\updateCallback;
 use Pachel\EasyFrameWork\DB\callBacks\whereCallback;
 use Pachel\EasyFrameWork\DB\mySql;
 use Pachel\EasyFrameWork\Messages;
@@ -49,7 +49,7 @@ abstract class dataModel
     /**
      * @var mySql $_db
      */
-    private mySql $_db;
+    protected mySql $_db;
     public const
         QUERY_TYPE_SELECT = 1,
         QUERY_TYPE_DELETE = 2,
@@ -60,21 +60,23 @@ abstract class dataModel
      * @var Query $_query
      */
     private Query $_query;
+
     public function __construct($values = null)
     {
         if (empty($this->_tablename)) {
             $this->_tablename = $this->setTableName(get_called_class());
         }
         $this->_classname = get_called_class();
+        /*
         if (!empty($values) && (is_array($values) || is_object($values))) {
             foreach ($values as $key => $value) {
-                if (property_exists($this, $key)) {
+                if (property_exists($this->_modelclass, $key)) {
                     $this->{$key} = $value;
                 } else {
                     throw new \Exception(sprintf(Messages::MODEL_PROPERY_NOT_EXISTS[0], $key, $this->_classname), Messages::MODEL_PROPERY_NOT_EXISTS[1]);
                 }
             }
-        }
+        }*/
         if (empty($this->_safefield)) {
             $this->_safefield = Base::instance()->env("mysql.safefield");
         }
@@ -147,76 +149,111 @@ abstract class dataModel
     }
 
     /**
+     * Ha van a safemode be van állítva akkor a delete=1 sorokat nem fogja hozni a lista
      * @param int $id
      * @return mixed
      */
     public function getById(int $id)
     {
-        return $this->_db->select(new $this->_classname())->id($id)->line();
+        return $this->select([$this->_primary => $id])->line();
     }
+
     /**
+     * Ha van a safemode be van állítva akkor a delete=1 sorokat nem fogja hozni a lista
      * @param string|array|object $where
      * @return whereCallback|null
      */
-    public function select($where):whereCallback
+    public function select($where): whereCallback
     {
-        $this->newQuery(true);
+        $this->_query = $this->newQuery($this->_safemode);
         $this->_query->method = self::QUERY_TYPE_SELECT;
         $this->_query->where = $where;
         return new whereCallback($this);
     }
 
     /**
+     * Ha van a safemode be van állítva akkor a delete=1 sorokat nem fogja érinteni az update, kivéve ha az id is át van adva paraméternek
      * @param $data
-     * @return bool|setCallback
+     * @return bool|updateCallback
      * @throws \Exception
      */
     public function update($data)
     {
         $where = [];
-        $data = $this->_dataToArray($data,false,$where);
-        if(empty($data)){
-            throw new \Exception(Messages::MYSQL_SET_IS_EMPTY[0],Messages::MYSQL_SET_IS_EMPTY[1]);
+        $data = $this->_dataToArray($data, false, $where);
+        if (empty($data)) {
+            throw new \Exception(Messages::MYSQL_SET_IS_EMPTY[0], Messages::MYSQL_SET_IS_EMPTY[1]);
         }
-
+        if (!empty($where)) {
+            return $this->_db->update($this->_tablename, $data, $where);
+        }
+        $this->_query = $this->newQuery($this->_safemode);
+        $this->_query->method = self::QUERY_TYPE_UPDATE;
+        $this->_query->set = $data;
+        return new updateCallback($this);
     }
 
-    public function lastInsertId(){
+    /**
+     * @param $where
+     * @return bool
+     */
+    protected function where($where): bool
+    {
+        $where = $this->_dataToArray($where,true);
+        $this->_query->where = $where;
+        $query = $this->makeQuery();
+        return $this->_db->toDatabase($query->query,$query->pdo_parameters);
+    }
+
+    /**
+     * @param $field
+     * @param $value
+     * @return bool
+     */
+    protected function nonamewhere($field,$value){
+        return $this->where([$field=>$value]);
+    }
+    public function lastInsertId()
+    {
         return $this->_db->last_insert_id();
     }
-    public function insert($data):bool
+
+    public function insert($data): bool
     {
         $data = $this->_dataToArray($data);
-        if(empty($data)){
-            throw new \Exception(Messages::MYSQL_SET_IS_EMPTY[0],Messages::MYSQL_SET_IS_EMPTY[1]);
+        if (empty($data)) {
+            throw new \Exception(Messages::MYSQL_SET_IS_EMPTY[0], Messages::MYSQL_SET_IS_EMPTY[1]);
         }
-        return $this->_db->insert($this->_tablename,$data);
+        return $this->_db->insert($this->_tablename, $data);
     }
-    private function _dataToArray($data,$isWhere=false,array &$primary = []):array
+
+    private function _dataToArray($data, $isWhere = false, array &$primary = []): array
     {
-        if(is_object($data)){
+        if (is_object($data)) {
             $data = get_object_vars($data);
         }
         $delete = false;
-        foreach ($data AS $kex => $value){
-            if($kex == $this->_primary && !$isWhere){
-                $primary = [$kex=>$value];
+        foreach ($data as $kex => $value) {
+            if ($kex == $this->_primary && !$isWhere) {
+                $primary = [$kex => $value];
                 $delete = true;
             }
         }
-        if($delete){
+        if ($delete) {
             unset($data[$this->_primary]);
         }
         return $data;
     }
-    public function deleteById(int $id,$safe = null){
-        if(!is_bool($safe)){
+
+    public function deleteById(int $id, $safe = null)
+    {
+        if (!is_bool($safe)) {
             $safe = $this->_safemode;
         }
-        if($safe){
-            return $this->_db->update($this->_tablename,[$this->_safefield=>1],[$this->_primary=>$id]);
+        if ($safe) {
+            return $this->_db->update($this->_tablename, [$this->_safefield => 1], [$this->_primary => $id]);
         }
-        return $this->_db->query("DELETE FROM `".$this->_tablename."` WHERE `".$this->_primary."`=:id")->params(["id"=>$id])->exec();
+        return $this->_db->query("DELETE FROM `" . $this->_tablename . "` WHERE `" . $this->_primary . "`=:id")->params(["id" => $id])->exec();
     }
 
     /**
@@ -225,56 +262,67 @@ abstract class dataModel
      * @return bool
      * @throws \Exception
      */
-    public function delete(array $where,$safe = null):bool
+    public function delete(array $where, $safe = null): bool
     {
-        if(!is_bool($safe)){
+        if (!is_bool($safe)) {
             $safe = $this->_safemode;
         }
 
-        if($safe){
-            return $this->_db->update($this->_tablename,[$this->_safefield=>1],$where);
+        if ($safe) {
+            return $this->_db->update($this->_tablename, [$this->_safefield => 1], $where);
         }
         $query = $this->newQuery($safe);
-        $query ->method = self::QUERY_TYPE_DELETE;
+        $query->method = self::QUERY_TYPE_DELETE;
         $query->where = $where;
         $query = $this->makeQuery();
-        return  $this->_db->toDatabase($query->query,$query->pdo_parameters);
-       // return $this->_db->delete(new $this->_classname(),$safe)->where($where);
+        return $this->_db->toDatabase($query->query, $query->pdo_parameters);
+        // return $this->_db->delete(new $this->_classname(),$safe)->where($where);
     }
-    private function newQuery(bool $safe):Query{
+
+    private function newQuery(bool $safe): Query
+    {
         $query = new Query();
         $query->safefield = $this->_safefield;
         $query->safemode = $safe;
         $query->from = $this->_tablename;
         return $query;
     }
-    protected function _nonameWhere(){
+
+    protected function _nonameWhere()
+    {
 
     }
+
     /**
      * @param array $data Associatív tömb kell, hoyg legyen, vagy stdObject
      * @return paramsCallback
      */
-    public function params(array $data):paramsCallback{
+    public function params(array $data): paramsCallback
+    {
         //TODO: DELETE UPDATE SELECT csakis string paraméterrel
         $this->_query = new Query();
         $this->_query->from = $this->_tablename;
         $this->_query->safemode = $this->_safemode;
         $this->_query->safefield = $this->_safefield;
-        $this->_query->pdo_parameters = $this->_dataToArray($data,true);
+        $this->_query->pdo_parameters = $this->_dataToArray($data, true);
         return new paramsCallback($this);
     }
-    protected function makeUpdate(string $query):makeUpdateCallback{
+
+    protected function makeUpdate(string $query): makeUpdateCallback
+    {
         $this->_query->where = $query;
         $this->_query->method = self::QUERY_TYPE_UPDATE;
         return new makeUpdateCallback($this);
 
     }
-    protected function makeSelect(string $query):makeSelectCallback{
+
+    protected function makeSelect(string $query): makeSelectCallback
+    {
         $this->_query->method = self::QUERY_TYPE_SELECT;
         $this->_query->where = $query;
         return new makeSelectCallback($this);
     }
+
     protected function get(string $type)
     {
         switch ($type) {
@@ -293,14 +341,19 @@ abstract class dataModel
         }
         return [];
     }
-    protected function set($values):bool{
+
+    protected function set($values): bool
+    {
         $this->_query->set = $this->_dataToArray($values);
         $query = $this->makeQuery();
-        return $this->_db->toDatabase($query->query,$query->pdo_parameters);
+        return $this->_db->toDatabase($query->query, $query->pdo_parameters);
     }
-    private function makeQuery(){
+
+    private function makeQuery()
+    {
         return new queryMaker($this->_query);
     }
+
     public function __call(string $name, array $arguments)
     {
         if (method_exists($this, $name)) {

@@ -20,7 +20,7 @@ $User = new UserModel();
 
 //$User->set(["nev"=>1])->deleted(0);
 $data = new \UserData();
-$data->id_dolgozok = 1;
+$data->id_dolgozok = 111;
 $data->nev = "jhkljasd";
 
 $data->email = "asdasdasd";
@@ -30,6 +30,16 @@ $User->insert($data);
 $result = $User->params(["id_csoportok"=>3])->select("id_csoportok=:id_csoportok")->array();
 $User->delete(["id"=>3]);
 
+if($User->setPassword("asdasdasd")->id(10)){
+    $User->deleteById($User->lastInsertId());
+    $data = new \UserData();
+    $data->email = "udpate";
+    $data->nev = "Minden is";
+    $data->id_csoportok = 2;
+    $User->update($data)->id_dolgozok(111);
+    $data->id = 112;
+    $User->update($data);
+}
 print_r($result);
 exit();
 $data->deleted=1;

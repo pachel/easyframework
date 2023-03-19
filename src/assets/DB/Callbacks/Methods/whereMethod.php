@@ -7,10 +7,10 @@ use Pachel\EasyFrameWork\DB\callBacks\whereCallback;
 trait whereMethod
 {
     /**
-     * @param object|array $table
+     * @param object|array $where Feltétel
      * @return whereCallback
      */
-    public function where($table):whereCallback{
-        return $this->class->where($table);
+    public function where($where):bool{
+        return $this->class->where($where);
     }
 }

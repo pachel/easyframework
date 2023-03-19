@@ -122,7 +122,11 @@ final class queryMaker
                 $this->mergePdo($query->pdo_parameters);
                 $sql.= $query->where;
             }
-            if($query->safemode && $query->method == dataModel::QUERY_TYPE_SELECT){
+            if($query->safemode &&
+                (
+                    $query->method == dataModel::QUERY_TYPE_SELECT
+                    || $query->method == dataModel::QUERY_TYPE_UPDATE
+                )){
                 if($counter>0){
                     $sql.=" AND";
                 }
