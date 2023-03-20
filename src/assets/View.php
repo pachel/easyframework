@@ -276,13 +276,15 @@ final class View
             }
         }
     }
-    public function run_template(string $template):string{
+    public static function run_template(string $template):string{
         $template = Base::instance()->env("app.views").$template;
         if(!file_exists($template)){
             throw new \Exception("A template nem létezik: ".$template);
         }
+        $routes = new Routes();
+        $View = new View($routes);
         $content = file_get_contents($template);
-        $this->run_content($content);
+        $View->run_content($content);
         return $content;
     }
     private function run_content(&$content, $template = null,Route $route = null)
