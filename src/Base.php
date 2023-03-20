@@ -28,7 +28,7 @@ class Base extends Prefab
     /**
      * Gyári változók, ezeken a felhasználó nem módosíthatja a $this->set() függvénnyel, ezek kulcsai mindig nagybetűssé lesznek alakítva
      */
-    const VAR_READONLY = ["SERVER", "COOKIE", "EFW", "ROUTES", "APP", "MYSQL", "REDIS", "STATUS"];
+    private static array $VAR_READONLY = ["SERVER", "COOKIE", "EFW", "ROUTES", "APP", "MYSQL", "REDIS", "STATUS"];
     /**
      * Ide azok a változók kerülnek majd, amiket gyorsítótárazni kell majd
      */
@@ -74,7 +74,6 @@ class Base extends Prefab
         }
         return $this->DB;
     }
-
 
 
     private function get($key, $fromself = true)
@@ -143,7 +142,7 @@ class Base extends Prefab
     private function is_systemvarialbe($key)
     {
 
-        if (preg_match("/^" . implode("|", self::VAR_READONLY) . ".*/i", $key)) {
+        if (preg_match("/^" . implode("|", self::$VAR_READONLY) . ".*/i", $key)) {
             return true;
         }
         return false;
@@ -400,10 +399,11 @@ class Base extends Prefab
 
         return $self;
     }
+
     protected function loadConfigFromTmp()
     {
-        $temp_config = self::TMP_DIR."config.tmp";
-        if(!file_exists($temp_config)){
+        $temp_config = self::TMP_DIR . "config.tmp";
+        if (!file_exists($temp_config)) {
             throw new \Exception(Messages::BASE_APP_NOT_CONFIGURED);
         }
         self::$vars = unserialize(file_get_contents($temp_config));
@@ -414,11 +414,11 @@ class Base extends Prefab
 
     private function saveConfigToTmp()
     {
-        $temp_config = self::TMP_DIR."config.tmp";
-        if(!is_writable(self::TMP_DIR)){
+        $temp_config = self::TMP_DIR . "config.tmp";
+        if (!is_writable(self::TMP_DIR)) {
             return;
         }
-        file_put_contents($temp_config,serialize($this->env(null)));
+        file_put_contents($temp_config, serialize($this->env(null)));
     }
     public function config($config): void
     {
@@ -460,6 +460,14 @@ class Base extends Prefab
         $this->setvars();
         $this->cache = new Cache(self::CACHE_DIR);
         $this->set("EFW.configured", true);
+    }
+
+    public function addReadableConfigName(string $name)
+    {
+        if(!in_array($name,self::$VAR_READONLY)){
+            self::$VAR_READONLY[] = $name;
+        }
+
     }
 
     public function get_loaded_routes(): Routes
