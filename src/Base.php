@@ -20,6 +20,7 @@ class Base extends Prefab
      */
     private static $vars;
 
+    private array $_userErrorPages;
     private const CACHE_DIR = __DIR__ . "/../tmp/cache/";
 
     private const TMP_DIR = __DIR__ . "/../tmp/";
@@ -192,12 +193,33 @@ class Base extends Prefab
         }*/
 
     }
+    public function addErrorPage(string $template,int $code):void{
+        $filename = $this->env("app.views").$template;
+        if(!file_exists($filename)){
+            throw new \Exception(Messages::DRAW_TEMPLATE_NOT_FOUND);
+        }
+        $this->_userErrorPages[] = [
+            "code" => $code,
+            "template"=>$template
+        ];
+    }
+    private function getUserErrorTemplate(int $code){
+        if(empty($this->_userErrorPages)){
+            return null;
+        }
+        foreach ($this->_userErrorPages AS $page){
+            if($code == $page["code"]){
+                return View::run_template($page["template"]);
+            }
+        }
 
+    }
     public function send_error(int $code)
     {
         ob_clean();
         $status = Functions::HTTPStatus($code);
         header($status["error"]);
+        echo $this->getUserErrorTemplate($code);
         if (defined("START_EFW")) {
             $timelog = $this->env("app.temp") . "timelog.log";
             $line = date("Y-m-d H:i:s") . " " . round(microtime(true) - START_EFW, 3) . " " . $this->env("server.request_uri") . "\n";

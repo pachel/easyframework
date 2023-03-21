@@ -84,7 +84,8 @@ class mySql
 
     protected function params(array $params): paramsCallback
     {
-        $this->QUERY->pdo_parameters = $this->arrayFromObject($params);;
+        //$this->QUERY->pdo_parameters = $this->arrayFromObject($params);;
+        $this->QUERY->pdo_parameters = $params;
         return new paramsCallback($this);
     }
 

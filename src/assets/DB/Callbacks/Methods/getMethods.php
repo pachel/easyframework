@@ -24,9 +24,13 @@ trait getMethods
     /*
     public function group(){
         return $this->class->get("group");
-    }
+    }*/
 
     public function flat(){
         return $this->class->get("flat");
-    }*/
+    }
+
+    public function numarray(){
+        return $this->class->get("array");
+    }
 }

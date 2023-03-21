@@ -25,7 +25,7 @@ final class View
             return;
         }
         $this->checkViews($templates);
-       //$this->set_content($templates[0]->template, $templates[0]->layout);
+        //$this->set_content($templates[0]->template, $templates[0]->layout);
     }
 
     /**
@@ -284,6 +284,7 @@ final class View
         $routes = new Routes();
         $View = new View($routes);
         $content = file_get_contents($template);
+        $View->replace_variables($content);
         $View->run_content($content);
         return $content;
     }
