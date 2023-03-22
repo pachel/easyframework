@@ -106,6 +106,9 @@ class mySql
             case "simple":
                 $type = "@simple";
                 break;
+            case "numarray":
+                $type = "@array";
+                break;
             default:
                 $type = "@row";
         }

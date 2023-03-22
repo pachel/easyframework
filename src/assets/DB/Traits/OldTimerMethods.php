@@ -14,7 +14,7 @@ trait OldTimerMethods
     {
 
         if (!$sql) {
-            throw new Exception('sql statement missing!');
+            throw new \Exception('sql statement missing!');
         }
 
         if (is_array($field)) {
@@ -58,7 +58,7 @@ trait OldTimerMethods
         }
         if ($field == '@group' && $id != null) {
             if ($result->rowCount()) {
-                while ($temp = $result->fetch(PDO::FETCH_ASSOC)) {
+                while ($temp = $result->fetch(\PDO::FETCH_ASSOC)) {
                     $resultArray[$temp[$id]] = $temp;
                 }
                 return ($resultArray);
@@ -66,7 +66,7 @@ trait OldTimerMethods
         }
         if ($field == '@array') {
             if ($result->rowCount()) {
-                while ($temp = $result->fetch(PDO::FETCH_NUM)) {
+                while ($temp = $result->fetch(\PDO::FETCH_NUM)) {
                     $resultArray[] = $temp[0];
                 }
                 return ($resultArray);

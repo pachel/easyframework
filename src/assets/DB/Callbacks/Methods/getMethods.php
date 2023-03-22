@@ -31,6 +31,6 @@ trait getMethods
     }
 
     public function numarray(){
-        return $this->class->get("array");
+        return $this->class->get("numarray");
     }
 }
