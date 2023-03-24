@@ -94,7 +94,6 @@ trait jsonMethod
      * akkor csak egy tömböt kell visszatérési értékként használnunk és
      * ezzel az opcióval a rendszer generál belőle egy jsont, és kiírja a képernyőre
      *
-     * @return void
      */
     public function json():generateMethodCallback
     {

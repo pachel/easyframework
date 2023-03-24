@@ -36,6 +36,7 @@ final class beforeMethodCallback extends CallbackBase
  */
 final class generateMethodCallback extends CallbackBase
 {
+
 }
 
 /**
