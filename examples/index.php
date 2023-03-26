@@ -51,7 +51,7 @@ class SmallController{
     public function ss(){
 
     }
-    public function dashboard2($app){
+    public function dashboard2(){
         //$t = new CodeFormater();
         //$this->app->code = $t->php(file_get_contents(__DIR__."/config/App.php"));
     }
@@ -99,7 +99,7 @@ Base::instance()->config(__DIR__ . "/config/App.php");
 Base::instance()->config(__DIR__ . "/config/dev_App.php");
 $Base = Base::instance();
 require __DIR__."/config/Routes.php";
-require __DIR__."/sqlTest.php";
+//require __DIR__."/sqlTest.php";
 
 
 

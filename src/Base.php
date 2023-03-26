@@ -309,9 +309,9 @@ class Base extends Prefab
         }
 
         if (is_array($route->url_variables)) {
-            $arguments = array_merge([$this], $route->url_variables);
+            $arguments = $route->url_variables;
         } else {
-            $arguments = [$this];
+            $arguments = null;
         }
         if ($route->before != "") {
             $this->run_only_functions($route, $arguments, "before");
@@ -352,14 +352,24 @@ class Base extends Prefab
         if (!empty($object->className)) {
             $classname = $object->className;
             $class = new $classname($this);
-            $return = $class->{$object->methodName}(...$arguments);
+            if(!empty($arguments)) {
+                $return = $class->{$object->methodName}(...$arguments);
+            }
+            else{
+                $return = $class->{$object->methodName}();
+            }
             $this->routes->find("path")->equal($route->path)->set(["return" => $return]);
             return true;
         } /**
          * Névtelen függvény hívása
          */
         elseif (!empty($object->object)) {
-            $return = call_user_func_array($object->object, $arguments);
+            if(empty($arguments)){
+                $return = call_user_func_array($object->object,[$this]);
+            }
+            else {
+                $return = call_user_func_array($object->object, array_merge([$this],$arguments));
+            }
             $this->routes->find("path")->equal($route->path)->set(["return" => $return]);
             return true;
         }
