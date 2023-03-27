@@ -296,6 +296,7 @@ final class View
 
         $vars = Base::instance()->env(null);
         extract($vars);
+        $app = Base::instance();
         /**
          * A lezáratlan php tegek lezárása
          */
