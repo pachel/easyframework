@@ -504,7 +504,8 @@ class Base extends Prefab
 
     public function get_loaded_routes(): Routes
     {
-        return $this->routes;
+        //TODO: ha cli akkor ez gond lehet
+        return $this->routes->find("template")->notequal("")->get()[0];
     }
 
     public function __set(string $name, $value): void

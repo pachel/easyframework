@@ -163,7 +163,7 @@ abstract class dataModel
      * @param string|array|object $where
      * @return whereCallback|null
      */
-    public function select($where,$safe = null): whereCallback
+    public function select($where = [],$safe = null): whereCallback
     {
         if (!is_bool($safe)) {
             $safe = $this->_safemode;

@@ -19,8 +19,14 @@ class Routes extends ListObject
         $URI = Routing::instance()->generate_uri();
         $METHOD = Routing::instance()->get_request_method();
         $routes = new Routes();
+        /**
+         * @var Route $item
+         */
         foreach ($this->containter AS $item){
-            if(preg_match("/^".$item->path_to_regex."$/",$URI,$preg) && preg_match("/".$METHOD."/i",$item->method)){
+
+
+            if(preg_match((preg_match("/[\^\$]/",$item->path_to_regex)?"/".$item->path_to_regex."/":"/^".$item->path_to_regex."$/"),$URI,$preg) && preg_match("/".$METHOD."/i",$item->method)){
+
                 if(is_array($item->url_variables) && count($item->url_variables) == count($preg)-1){
                     $a = [];
                     $x=1;
