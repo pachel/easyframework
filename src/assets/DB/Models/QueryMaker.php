@@ -5,6 +5,7 @@ namespace Pachel\EasyFrameWork\DB\Models;
 use Pachel\EasyFrameWork\DB\mySql;
 use Pachel\EasyFrameWork\Functions;
 use Pachel\EasyFrameWork\Messages;
+use SebastianBergmann\CodeCoverage\Report\Xml\Method;
 
 /**
  * Ez az objektum készíti el a MYSQL szövegét, a mentett adatok alapján
@@ -122,19 +123,25 @@ final class queryMaker
                 $this->mergePdo($query->pdo_parameters);
                 $sql.= $query->where;
             }
-            if($query->safemode &&
-                (
-                    $query->method == dataModel::QUERY_TYPE_SELECT
-                    || $query->method == dataModel::QUERY_TYPE_UPDATE
-                )){
-                if($counter>0){
-                    $sql.=" AND";
-                }
-                $sql.=" `".$query->safefield."`=:".$query->safefield;
-                $this->pdo_parameters[$query->safefield] = 0;
-            }
+
         }
-        else{
+        if($query->safemode &&
+            (
+                $query->method == dataModel::QUERY_TYPE_SELECT
+                || $query->method == dataModel::QUERY_TYPE_UPDATE
+            )){
+            if($counter>0){
+                $sql.=" AND";
+            }
+            $sql.=" `".$query->safefield."`=:".$query->safefield;
+            $this->pdo_parameters[$query->safefield] = 0;
+        }
+        if(empty($sql) && (
+            $query->method == dataModel::QUERY_TYPE_DELETE
+            || $query->method == dataModel::QUERY_TYPE_UPDATE
+        )
+
+        ){
             throw new \Exception(Messages::MYSQL_WHERE_IS_EMPTY[0],Messages::MYSQL_WHERE_IS_EMPTY[1]);
         }
         return $sql;
