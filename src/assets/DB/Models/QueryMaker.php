@@ -103,9 +103,9 @@ final class queryMaker
      */
     private function makeWhere(Query $query):string{
         $sql = "";
+        $counter = 0;
         if (!empty($query->where)) {
             $sql = " WHERE ";
-            $counter = 0;
             if (is_array($query->where)) {
                 foreach ($query->where as $key => $value) {
                     if ($counter > 0) {
