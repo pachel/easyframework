@@ -133,6 +133,9 @@ final class queryMaker
             if($counter>0){
                 $sql.=" AND";
             }
+            else{
+                $sql = " WHERE ";
+            }
             $sql.=" `".$query->safefield."`=:".$query->safefield;
             $this->pdo_parameters[$query->safefield] = 0;
         }
