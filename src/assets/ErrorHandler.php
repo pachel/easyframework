@@ -83,7 +83,8 @@ function exceptionHandler($exception,$onlylog = false) {
         $exception->getLine()
     );
     $msg = str_pad("",150,"-")."\n\n".$msg."\n";
-    if(Base::instance()->env("APP.TEST") && !$onlylog){
+
+    if(!Base::instance()->env("EFW.configured") || ( Base::instance()->env("APP.TEST") && !$onlylog)){
         echo "<pre>";
         print_r($msg);
         echo "</pre>";

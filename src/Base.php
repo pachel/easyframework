@@ -67,6 +67,12 @@ class Base extends Prefab
     {
         $this->set("EFW.configured", false);
     }
+    public function Routing():Routing{
+        return Routing::instance();
+    }
+    public function Auth():Auth{
+        return Auth::instance();
+    }
 
     protected function setdbProperty()
     {
@@ -454,6 +460,7 @@ class Base extends Prefab
     }
     public function config($config): void
     {
+
         if (is_array($config)) {
 
         } elseif (is_file($config)) {
@@ -472,6 +479,7 @@ class Base extends Prefab
                     if ($this->is_path($key . "." . $key2)) {
                         $item2 = Functions::checkSlash($item2);
                         if (!is_dir($item2) && strtoupper($key2) != "URL") {
+
                             throw new \Exception(Messages::BASE_FOLDER_NOT_EXISTS);
                         }
                     }

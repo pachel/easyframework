@@ -47,8 +47,18 @@ class Auth extends Prefab
     /**
      * @param mixed $object
      * @return void
+     * @deprecated
      */
     public function authorise($object)
+    {
+        $this->enabled = true;
+        $this->autorise_function = $object;
+    }
+    /**
+     * @param mixed $object
+     * @return void
+     */
+    public function authoriser($object)
     {
         $this->enabled = true;
         $this->autorise_function = $object;

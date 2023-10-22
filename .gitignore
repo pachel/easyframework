@@ -2,8 +2,8 @@
 vendor/
 composer.lock
 nbproject/
-examples/logs
-examples/temp
+examples/logs/*
+examples/temp/*
 /.htaccess
 dev_*
 .phpunit.cache

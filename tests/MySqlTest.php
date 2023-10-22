@@ -5,7 +5,6 @@ use \Pachel\EasyFrameWork\Tests;
 use Pachel\EasyFrameWork\Base;
 use Pachel\EasyFrameWork\UserModel;
 use \Pachel\EasyFrameWork\DB\Models\Query;
-
 class MySqlTest extends TestCase
 {
     protected function setUp(): void
@@ -29,11 +28,7 @@ class MySqlTest extends TestCase
     public function test_connect()
     {
 
-        /*
-        $testMock = $this->createMock(Base::class);
-        $testMock->expects($this->once())->method("env")->with($this->logicalOr("MYSQL","MYSQLI"))->willReturn(true);
 
-        $this->assertTrue($testMock->env("MYSQLI"));*/
 
         try {
             $db = new \Pachel\EasyFrameWork\DB\mySql();

@@ -86,6 +86,7 @@ class SmallController{
         print_r(func_get_args());
     }
     public function api_key_check(){
+
         if(!isset($this->app->GET["apikey"]) || $this->app->GET["apikey"] != 15487){
             $this->app->send_error(403);
         }
@@ -102,7 +103,7 @@ require __DIR__."/config/Routes.php";
 //require __DIR__."/sqlTest.php";
 
 
-
+//$Base->Routing()->get()->view()->name()->layout();
 
 
 
