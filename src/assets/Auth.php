@@ -3,19 +3,23 @@
 namespace Pachel\EasyFrameWork;
 
 
+use Pachel\EasyFrameWork\Callbacks\AuthPolityCallback;
+
 class Auth extends Prefab
 {
     public static array $vars;
 
     protected bool $enabled = false;
-    protected string $default_policy = "deny";
 
     protected SiteList $allowedSitesList;
 
     protected $autorise_function;
     protected const
-        METHOD_ALIASES = [];
+        METHOD_ALIASES = [],
+        POLICY_DENY     = "DENY",
+        POLICY_ALLOW    = "ALLOW";
 
+    protected string $default_policy = self::POLICY_DENY;
     use MethodAlias;
     use returnObjectArray;
     public function __construct()
@@ -27,19 +31,26 @@ class Auth extends Prefab
      * @param string $type
      * @return void
      */
-    public function policy(string $type)
+    public function policy(string $type = null)
     {
         //TODO: csak ez van egyenlőre
-        $type = "deny";
-        $this->default_policy = strtoupper($type);
+        if(!empty($type)) {
+            $this->default_policy = self::POLICY_DENY;
+        }
+        return new AuthPolityCallback($this);
     }
-
+    protected function polity_allow(){
+        $this->default_policy = self::POLICY_ALLOW;
+    }
+    protected function polity_deny(){
+        $this->default_policy = self::POLICY_DENY;
+    }
     public function allow($path)
     {
         $this->allowedSitesList->push(["path" => Functions::checkSlash2($path), "path_to_regex" => Routing::instance()->prepare_path_to_regex(Functions::checkSlash2($path))]);
     }
 
-    public function deny()
+    public function deny($path)
     {
 
     }
@@ -60,8 +71,7 @@ class Auth extends Prefab
      */
     public function authoriser($object)
     {
-        $this->enabled = true;
-        $this->autorise_function = $object;
+        $this->authorise($object);
     }
 
 

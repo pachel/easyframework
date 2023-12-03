@@ -48,9 +48,10 @@ Routing::instance()->cli("email-szinkronok",function ($app){
 
 /**
  * Authorise
+ * @var Base $Base
  */
-
-Auth::instance()->policy("deny");
+$Base->Auth()->policy()->deny();
+//Auth::instance()->policy("deny");
 
 //Auth::instance()->allow("withlayouts/");
 //Auth::instance()->allow("/");
@@ -64,4 +65,4 @@ Auth::instance()->allow("api.php");
 /**
  * Csak a POST|GET path-ra vonatkozik, a cli nincs ellenőrizve
  */
-Auth::instance()->authoriser([SmallController::class,"authorise"]);
+Auth::instance()->authoriser([SmallController::class,"authoriser"]);

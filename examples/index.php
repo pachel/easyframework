@@ -36,7 +36,7 @@ class SmallController{
     public function ajax(){
         return ["teszt"=>1];
     }
-    public function authorise($path):bool
+    public function authoriser($path):bool
     {
         if($path == "multiples"){
             return true;
