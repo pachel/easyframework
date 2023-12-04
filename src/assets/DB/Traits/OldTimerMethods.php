@@ -239,10 +239,18 @@ trait OldTimerMethods
         if (is_array($where)) {
             $counter = 0;
             foreach ($where as $index => $value) {
+                $sid = "RND".$this->get_random_string(20);
                 if ($counter > 0) {
                     $string .= " AND ";
                 }
-                $string .= "`" . $index . "`" . (is_numeric($value) ? "=" . $value : " LIKE '" . $value . "'");
+                if(empty($params)){
+                    $string .= "`" . $index . "`" . (is_numeric($value) ? "=" . $value : " LIKE '" . $value."'");
+                }
+                else {
+                    $string .= "`" . $index . "`" . (is_numeric($value) ? "=:" . $sid : " LIKE :" . $sid);
+                    $params[$sid] = $value;
+                }
+                //$string .= "`" . $index . "`" . (is_numeric($value) ? "=" . $value : " LIKE '" . $value . "'");
                 $counter++;
             }
         } else {
