@@ -13,7 +13,7 @@ set_exception_handler("Pachel\\EasyFrameWork\\exceptionHandler");
 
 class Base extends Prefab
 {
-    protected mySql $DB;
+
 
     /**
      * @var array $vars
@@ -523,10 +523,11 @@ class Base extends Prefab
 
     public function __get(string $name)
     {
+        /*
         if ($name == "DB") {
             //file_put_contents(Base::instance()->env("app.logs")."memory.log",date("Y-m-d H:i:s")." ".round(memory_get_usage()/1024/1024,3)."\n",FILE_APPEND);
             return $this->setdbProperty();
-        }
+        }*/
         return $this->env($name);
     }
 

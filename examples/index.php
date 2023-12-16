@@ -1,11 +1,12 @@
 <?php
 namespace Pachel\EasyFrameWork;
+
 define(microtime(true), "START_EFW");
 session_start();
 ob_start();
 
 
-use Pachel\EasyFrameWork\DB\Modells\dataModel;
+
 
 require_once __DIR__."/../vendor/autoload.php";
 //requ
@@ -67,7 +68,7 @@ class SmallController{
     }
 
     /**
-     * @param Pachel\EasyFrameWork\BaseAsArgument $app
+     * @param BaseAsArgument $app
      * @return void
      */
     public function landing($app){
@@ -76,7 +77,7 @@ class SmallController{
     }
 
     /**
-     * @param Pachel\EasyFrameWork\BaseAsArgument $app
+     * @param BaseAsArgument $app
      * @return array
      */
     public function api($app){
@@ -99,6 +100,7 @@ Base::instance()->config(__DIR__ . "/config/App.php");
 */
 Base::instance()->config(__DIR__ . "/config/dev_App.php");
 $Base = Base::instance();
+
 require __DIR__."/config/Routes.php";
 //require __DIR__."/sqlTest.php";
 
