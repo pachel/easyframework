@@ -30,6 +30,8 @@ class SmallController{
      * @var \Pachel\EasyFrameWork\BaseAsArgument $app;
      */
     protected $app;
+
+    private DB\mySql $db;
     public function __construct($app)
     {
         $this->app = $app;
@@ -46,6 +48,8 @@ class SmallController{
     }
     public function dashboard($app,$category,$id){
        // echo debug_backtrace()[0]['class']."->".debug_backtrace()[0]['function']."();\n";
+        $user = new \UserModel();
+
         $app->kex = $category."-".$id;
 
     }
