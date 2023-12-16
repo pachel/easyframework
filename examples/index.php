@@ -31,7 +31,7 @@ class SmallController{
      */
     protected $app;
 
-    private DB\mySql $db;
+
     public function __construct($app)
     {
         $this->app = $app;
