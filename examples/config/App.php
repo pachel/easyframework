@@ -1,4 +1,7 @@
 <?php
+
+
+
 return [
     "APP" => [
         "URL" => "http://localhost/easyframe/examples/",

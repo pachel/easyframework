@@ -56,6 +56,7 @@ $Base->Auth()->policy()->deny();
 //Auth::instance()->allow("withlayouts/");
 //Auth::instance()->allow("/");
 Auth::instance()->allow("dashboard/*");
+Auth::instance()->allow("login");
 Auth::instance()->allow("layout");
 Auth::instance()->allow("named");
 Auth::instance()->allow("teszt");
