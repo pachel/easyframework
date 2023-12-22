@@ -41,19 +41,17 @@ class SmallController{
     }
     public function authoriser($path):bool
     {
-        if($path == "multiples"){
+        if($path == "multiples" || 1){
             return true;
         }
         return false;
     }
-    public function dashboard($app,$category,$id){
-       // echo debug_backtrace()[0]['class']."->".debug_backtrace()[0]['function']."();\n";
-        $user = new \UserModel();
+    public function dashboard($category,$id){
 
-        $app->kex = $category."-".$id;
 
     }
-    public function ss(){
+    public function ss($id,$valami){
+
 
     }
     public function dashboard2(){

@@ -7,24 +7,26 @@ use Pachel\EasyFrameWork\Callbacks\AuthPolityCallback;
 
 class Auth extends Prefab
 {
-    public static array $vars;
+    protected static array $vars;
 
     protected bool $enabled = false;
 
     protected SiteList $allowedSitesList;
 
+    protected SiteList $deniedSitesList;
+
     protected $autorise_function;
-    protected const
-        METHOD_ALIASES = [],
+    public const
         POLICY_DENY     = "DENY",
         POLICY_ALLOW    = "ALLOW";
-
+    protected const METHOD_ALIASES = [];
     protected string $default_policy = self::POLICY_DENY;
     use MethodAlias;
     use returnObjectArray;
     public function __construct()
     {
         $this->allowedSitesList = new SiteList();
+        $this->deniedSitesList = new SiteList();
     }
 
     /**
@@ -52,7 +54,7 @@ class Auth extends Prefab
 
     public function deny($path)
     {
-
+        $this->deniedSitesList->push(["path" => Functions::checkSlash2($path), "path_to_regex" => Routing::instance()->prepare_path_to_regex(Functions::checkSlash2($path))]);
     }
 
     /**
@@ -93,6 +95,13 @@ class Auth extends Prefab
             return true;
         }
         /**
+         * Ha engedélyezés az alapszabály, és nincs olyan oldal amire csekkolni kellene
+         * akkor engedjük a futtatást
+         */
+        if($this->default_policy == self::POLICY_ALLOW && $this->deniedSitesList->count() == 0){
+            return true;
+        }
+        /**
          * Ha nincs beállítva hitelesítő metódus, akkor nem kell hitelesíteni
          */
         $method = $this->get_object($this->autorise_function);
@@ -116,23 +125,30 @@ class Auth extends Prefab
             //TODO: Üzi kell
            // throw new \Exception("",10102);
         }*/
+        if($this->default_policy == self::POLICY_DENY) {
+            /**
+             * Ha van talált oldal, az jó
+             * @var SiteObject $item
+             */
+            foreach ($this->allowedSitesList as $item) {
+                if (preg_match("/^" . $item->path_to_regex . "$/", $routes->path)) {
+                    return true;
+                }
+            }
 
+            //Ha hitelesítés kell, és van ilyen funkció beállítva akkor azt lefuttatjuk
+            return $this->run_autorise_function($routes->path);
+        }
         /**
-         * Ha van talált oldal, az jó
+         * A az AUTH szabály Allow, akkor az aktuális URL-re le kell futtatni a
          * @var SiteObject $item
          */
-
-
-
-        foreach ($this->allowedSitesList as $item) {
+        foreach ($this->deniedSitesList AS $item){
             if (preg_match("/^" . $item->path_to_regex . "$/", $routes->path)) {
-                return true;
+                return $this->run_autorise_function($routes->path);
             }
         }
-
-        //TODO: AUTH FÜGGVÉNYT LE KELL FUTTATNI
-        return $this->run_autorise_function($routes->path);
-
+        return true;
     }
 
     protected function run_autorise_function($path)

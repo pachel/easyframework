@@ -1,3 +1,3 @@
 @CONTENT:
-Register
+Register xcv x
 :CONTENT@
