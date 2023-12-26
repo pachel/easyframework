@@ -40,18 +40,10 @@ class Routing extends Prefab
 
     protected function first()
     {
-        /*
-        foreach ($this->routes AS $index => $route){
-            $this->routes[$index]->first = 0;
-        }
-        $this->routes[$this->routes->count()-1]->first = 1;
-        */
         $count = $this->routes->count() - 1;
         $route = $this->routes[$count];
         $this->routes->delete($count);
         $this->routes->pop($route);
-
-
     }
 
     /**
@@ -74,6 +66,14 @@ class Routing extends Prefab
         $this->routes[$this->routes->count() - 1]->allow = true;
     }
 
+    /**
+     * Ez a függvény adja hozzá a route-okat,
+     * lehet type:get|post|postget|ajax|cli
+     * @param string $type
+     * @param string $path
+     * @param array|object $object
+     * @return RouteMethodCallback
+     */
     protected function method($type, $path, $object = null)
     {
         $route = new Route();

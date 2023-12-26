@@ -1,6 +1,7 @@
 <?php
 
 namespace Pachel\EasyFrameWork;
+
 trait MethodAlias{
 
 /*

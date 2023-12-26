@@ -10,7 +10,7 @@ abstract class ListObject implements \ArrayAccess, \Iterator
     private const
         METHOD_ALIASES = [
         "gecet" => ["get", "onlyindex", "cut", "count","object"],
-        "compare" => ["equal", "notequal", "smallerthan", "greaterthan", "regex"]
+        "compare" => ["equal", "notequal", "smallerthan", "lessthan", "greaterthan", "regex"]
     ];
     protected $class;
     protected $pointer = 0;
@@ -108,6 +108,9 @@ abstract class ListObject implements \ArrayAccess, \Iterator
                 $type = self::SEARCH_NOT_EQUAL;
                 break;
             case "smallerthan":
+                $type = self::SEARCH_SMALLER_THAN;
+                break;
+            case "lessthan":
                 $type = self::SEARCH_SMALLER_THAN;
                 break;
             default:
@@ -376,7 +379,7 @@ abstract class ListObjectItem implements \ArrayAccess
  * @method compare2RequestCallBack regex($value_with_compare)
  * @method compare2RequestCallBack equal($value_with_compare)
  * @method compare2RequestCallBack notequal($value_with_compare)
- * @method compare2RequestCallBack smallerthan($value_with_compare)
+ * @method compare2RequestCallBack lessthan($value_with_compare)
  * @method compare2RequestCallBack greaterthan($value_with_compare)
  */
 final class findRequestCallBack extends CallbackBase

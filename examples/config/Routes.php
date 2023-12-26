@@ -46,10 +46,7 @@ Routing::instance()->cli("email-szinkronok",function ($app){
 
 
 
-/**
- * Authorise
- * @var Base $Base
- */
+/** @var Base $Base */
 $Base->Auth()->policy()->deny();
 
 Auth::instance()->allow("dashboard/*");
