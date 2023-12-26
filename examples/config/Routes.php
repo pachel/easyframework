@@ -1,6 +1,6 @@
 <?php
 namespace Pachel\EasyFrameWork;
-
+/** @var Base $Base */
 Routing::instance()->get("*",[SmallController::class,"always"])->first();
 
 Routing::instance()->get("regex:^api\/([a-z]{2})\/([a-z]{2})\/.*",
@@ -28,6 +28,7 @@ Routing::instance()->get("layout",function ($app){$app->kex = 0;})->view("unname
 Routing::instance()->get("layout",function ($app){$app->kex = 2;})->view("unnamed.php")->name("content3")->layout("layout.php");
 Routing::instance()->get("layout",function ($app){$app->kex = 3;})->view("unnamed.php")->name("js")->layout("layout.php");
 
+$Base->Routing()->get("loads")->view("loads/index.html");
 
 
 /**
@@ -51,6 +52,7 @@ $Base->Auth()->policy()->deny();
 
 Auth::instance()->allow("dashboard/*");
 Auth::instance()->allow("login");
+Auth::instance()->allow("loads");
 Auth::instance()->allow("layout");
 Auth::instance()->allow("named");
 Auth::instance()->allow("teszt");

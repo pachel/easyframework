@@ -98,9 +98,13 @@ final class View
                     continue;
                 }
                 $load_content = file_get_contents($viewsDir.$value);
+                //A html változók cseréje
+                $this->replace_variables($load_content);
+                //PHP tartalom futtatása
                 $this->run_content($load_content,$value);
                 $name = preg_replace("/(.+)\.[^\.]+$/","$1",basename($value));
-                $content = str_replace($preg[0][$index],"<!--".$name."-->\n".$load_content."\n<!--end of ".$name."-->\n",$content);
+                //$content = str_replace($preg[0][$index],"<!--".$name."-->\n".$load_content."\n<!--end of ".$name."-->\n",$content);
+                $content = str_replace($preg[0][$index],$load_content,$content);
             }
         }
     }

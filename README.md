@@ -15,7 +15,6 @@
 ````
 <?php
 use Pachel\EasyFrameWork\Base;
-use Pachel\EasyFrameWork\Routing;
 
 require_once __DIR__."/../vendor/autoload.php";
 
@@ -31,7 +30,7 @@ $App = Base::instance();
 $App->config($config);
 
 //Loads the template.html file from the folder APP.VIEWS to any get request
-Routing::instance()->get("*")->view("template.html");
+$App->Routing()->get("*")->view("index.html");
 $App->run();
 ?>
 ````
@@ -40,7 +39,7 @@ $App->run();
 ### Required parameters
 - APP
   - URL
-  - UI
+  - UI 
 > If the **APP.VIEW** folder is not set up, the app is looking for templates in the **APP.UI** folder
 ### Nice to have
 - APP
