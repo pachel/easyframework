@@ -318,6 +318,17 @@ class Base extends Prefab
             $arguments = $route->url_variables;
         } else {
             $arguments = null;
+            /**
+             * Ha cli method van akkor a paramétereket át kell adni
+             * a függvénynek amit meghívunk
+             */
+            if($route->method == "CLI"){
+                $argv = $this->SERVER["ARGV"];
+                $argc = $this->SERVER["ARGC"];
+                if($argc>2) {
+                    $arguments = array_slice($argv, 2, count($argv) - 2);
+                }
+            }
         }
         if ($route->before != "") {
             $this->run_only_functions($route, $arguments, "before");
@@ -488,6 +499,9 @@ class Base extends Prefab
             }
             $this->set($key, $item);
         }
+        /**
+         * A kötelező elemek ellenőrzése
+         */
         foreach (self::CONFIG_REQUIREMENT as $item) {
             if ($this->get($item) == "") {
                 throw new \Exception(Messages::BASE_CONFIG_MISSING_REQ);
@@ -495,6 +509,10 @@ class Base extends Prefab
         }
         if ($this->get("APP.VIews") == "") {
             $this->set("app.views", $this->get("app.ui"));
+        }
+
+        if(empty($this->get("app.test"))){
+            $this->set("APP.TEST",true);
         }
         $this->saveConfigToTmp();
         $this->setvars();

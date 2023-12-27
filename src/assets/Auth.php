@@ -163,7 +163,8 @@ class Auth extends Prefab
          */
         if (!empty($object->className)){
             $classname = $object->className;
-            $class = new $classname(Base::instance());
+            $c = Base::instance();
+            $class = new $classname($c);
             return $class->{$object->methodName}($path);
         }
         /**

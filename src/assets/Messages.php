@@ -11,6 +11,7 @@ class Messages
         BASE_CONFIG_MISSING_REQ         = "Missing requirement from config",
 
         DRAW_TEMPLATE_NOT_FOUND         = "Template not found!",
+        ROUTES_ARE_NOT_CONFIGURED       = "Routes are not configured!",
 
         ROUTING_PARAMETER_MISSING       = "Parameter missing",
         PARAMETER_TYPE_ERROR            = "Parameter type error!",
