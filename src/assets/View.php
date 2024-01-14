@@ -135,7 +135,7 @@ final class View
     public function show2()
     {
         if(Base::instance()->routes->count() == 0){
-            throw new \Exception(Messages::ROUTES_ARE_NOT_CONFIGURED);
+          //  throw new \Exception(Messages::ROUTES_ARE_NOT_CONFIGURED);
         }
         /**
          * Ha nincs part és van templatet tartalmazó route, akkor bizony nincs hozzáférésünk az oldalhoz

@@ -1,7 +1,7 @@
 <?php
 namespace Pachel\EasyFrameWork;
 /** @var Base $Base */
-Routing::instance()->get("*",[SmallController::class,"always"])->first();
+$Base->Routing()->get("*",[SmallController::class,"always"])->first();
 
 Routing::instance()->get("regex:^api\/([a-z]{2})\/([a-z]{2})\/.*",
     function ($app,$lang,$kex){
@@ -50,16 +50,16 @@ Routing::instance()->cli("email-szinkronok",function ($app){
 /** @var Base $Base */
 $Base->Auth()->policy()->deny();
 
-Auth::instance()->allow("dashboard/*");
-Auth::instance()->allow("login");
-Auth::instance()->allow("loads");
-Auth::instance()->allow("layout");
-Auth::instance()->allow("named");
-Auth::instance()->allow("teszt");
-Auth::instance()->allow("unnamed");
-Auth::instance()->allow("dashboard/login");
-Auth::instance()->allow("api.php");
+$Base->Auth()->allow("dashboard/*");
+$Base->Auth()->allow("login");
+$Base->Auth()->allow("loads");
+$Base->Auth()->allow("layout");
+$Base->Auth()->allow("named");
+$Base->Auth()->allow("teszt");
+$Base->Auth()->allow("unnamed");
+$Base->Auth()->allow("dashboard/login");
+$Base->Auth()->allow("api.php");
 /**
- * Csak a POST|GET path-ra vonatkozik, a cli nincs ellenőrizve
+ * Csak a POST|GET|AJAX path-ra vonatkozik, a cli nincs ellenőrizve
  */
 Auth::instance()->authoriser([SmallController::class,"authoriser"]);

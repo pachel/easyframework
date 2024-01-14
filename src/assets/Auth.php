@@ -30,15 +30,10 @@ class Auth extends Prefab
     }
 
     /**
-     * @param string $type
-     * @return void
+     * @return AuthPolityCallback
      */
-    public function policy(string $type = null)
+    public function policy()
     {
-        //TODO: csak ez van egyenlőre
-        if(!empty($type)) {
-            $this->default_policy = self::POLICY_DENY;
-        }
         return new AuthPolityCallback($this);
     }
     protected function polity_allow(){
