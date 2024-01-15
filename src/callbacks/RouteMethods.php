@@ -40,6 +40,17 @@ trait routeMethods
     }
 
     /**
+     * Minden method kivéve a cli-t
+     * @param string $path
+     * @param $object
+     * @return RouteMethodCallback
+     */
+    public function all(string $path,$object = null):RouteMethodCallback
+    {
+        return $this->method("all",$path,$object);
+    }
+
+    /**
      * @param string $path
      * @param $object
      * @return RouteMethodCallback

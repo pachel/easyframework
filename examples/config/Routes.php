@@ -13,7 +13,7 @@ Routing::instance()->ajax("ajax",[SmallController::class,"ajax"])->json()->allow
 Routing::instance()->get("dashboard/login",[SmallController::class,"dashboard3"])->view("login/layout.register.php");
 Routing::instance()->get("teszt",[SmallController::class,"dashboard2"])->view("layout.index.php");
 Routing::instance()->get("dashboard/{category}/{id}.html",[SmallController::class,"dashboard"])->view("layout.index.php")->allow();
-Routing::instance()->get("static.html")->view("login.php");
+Routing::instance()->all("static.html")->view("login.php");
 Routing::instance()->get("login")->view("login.php");
 Routing::instance()->get("teszt/{id}/{valami}.html",[SmallController::class,"ss"])->view("login/layout.register.php");
 

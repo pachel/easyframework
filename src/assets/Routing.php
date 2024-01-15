@@ -19,7 +19,7 @@ class Routing extends Prefab
 
     protected const
         METHOD_ALIASES = [
-        "method" => ["get", "post", "cli", "postget","ajax"],
+        "method" => ["get", "post","all", "cli", "postget","ajax"],
         "generate" => ["json"]
     ];
 
@@ -76,6 +76,9 @@ class Routing extends Prefab
      */
     protected function method($type, $path, $object = null)
     {
+        if($type == "all"){
+            $type = "get|post|ajax";
+        }
         $route = new Route();
         $route->path = Functions::checkSlash2($path);
         //$route->path_original = $path;
