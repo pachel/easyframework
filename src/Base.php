@@ -20,7 +20,7 @@ class Base extends Prefab
      */
     private static $vars;
 
-    private array $_userErrorPages;
+    private  $_userErrorPages;
     private const CACHE_DIR = __DIR__ . "/../tmp/cache/";
 
     private const TMP_DIR = __DIR__ . "/../tmp/";
@@ -29,7 +29,7 @@ class Base extends Prefab
     /**
      * Gyári változók, ezeken a felhasználó nem módosíthatja a $this->set() függvénnyel, ezek kulcsai mindig nagybetűssé lesznek alakítva
      */
-    private static array $VAR_READONLY = ["SERVER", "COOKIE", "EFW", "ROUTES", "APP", "MYSQL", "REDIS", "STATUS"];
+    private static  $VAR_READONLY = ["SERVER", "COOKIE", "EFW", "ROUTES", "APP", "MYSQL", "REDIS", "STATUS"];
     /**
      * Ide azok a változók kerülnek majd, amiket gyorsítótárazni kell majd
      */

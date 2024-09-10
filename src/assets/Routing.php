@@ -14,8 +14,14 @@ use Pachel\EasyFrameWork\Traits\routeMethods;
 
 class Routing extends Prefab
 {
-    protected Routes $routes;
-    protected string $to_regex_replace;
+    /**
+     * @var Routes $routes
+     */
+    protected  $routes;
+    /**
+     * @var string $to_regex_replace
+     */
+    protected  $to_regex_replace;
 
     protected const
         METHOD_ALIASES = [

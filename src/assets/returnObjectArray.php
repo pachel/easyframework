@@ -35,10 +35,10 @@ trait returnObjectArray
 final class objectProperty
 {
 
-    public string $className;
+    public  $className;
 
-    public string $methodName;
+    public  $methodName;
 
 
-    public object $object;
+    public  $object;
 }

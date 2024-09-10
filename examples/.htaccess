@@ -14,3 +14,9 @@ RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule .* index.php [L,QSA]
 RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization},L]
+<FilesMatch "\.php$">
+        php_flag engine off
+        SetHandler application/x-httpd-php72
+        Action application/x-httpd-php72 "/php72/php-cgi.exe"
+    </FilesMatch>
+

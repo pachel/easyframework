@@ -7,20 +7,32 @@ use Pachel\EasyFrameWork\Callbacks\AuthPolityCallback;
 
 class Auth extends Prefab
 {
-    protected static array $vars;
-
-    protected bool $enabled = false;
-
-    protected SiteList $allowedSitesList;
-
-    protected SiteList $deniedSitesList;
+    /**
+     * @var array $vars
+     */
+    protected static $vars;
+    /**
+     * @var bool $enabled
+     */
+    protected $enabled = false;
+    /**
+     * @var SiteList $allowedSitesList
+     */
+    protected  $allowedSitesList;
+    /**
+     * @var SiteList $deniedSitesList
+     */
+    protected $deniedSitesList;
 
     protected $autorise_function;
     public const
         POLICY_DENY     = "DENY",
         POLICY_ALLOW    = "ALLOW";
     protected const METHOD_ALIASES = [];
-    protected string $default_policy = self::POLICY_DENY;
+    /**
+     * @var string $default_policy
+     */
+    protected $default_policy = self::POLICY_DENY;
     use MethodAlias;
     use returnObjectArray;
     public function __construct()

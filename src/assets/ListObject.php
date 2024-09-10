@@ -15,8 +15,11 @@ abstract class ListObject implements \ArrayAccess, \Iterator
     protected $class;
     protected $pointer = 0;
 
-    private int $calls = 0;
-    private finInfo $findinfo;
+    private  $calls = 0;
+    /**
+     * @var finInfo $findinfo
+     */
+    private $findinfo;
     public const
         SEARCH_EQUAL = 1,
         SEARCH_NOT_EQUAL = 2,
@@ -24,7 +27,7 @@ abstract class ListObject implements \ArrayAccess, \Iterator
         SEARCH_GREATER_THAN = 4,
         SEARCH_REGEX = 4;
 
-    private int $findcount = 0;
+    private $findcount = 0;
 
     public function reset()
     {
@@ -305,10 +308,19 @@ abstract class ListObject implements \ArrayAccess, \Iterator
 abstract class ListObjectItem implements \ArrayAccess
 {
 
-    protected array $container;
-    protected array $keys;
+    /***
+     * @var array $container
+     */
+    protected  $container;
+    /**
+     * @var array $keys
+     */
+    protected  $keys;
 
-    private int $pointer = 0;
+    /**
+     * @var int $pointer
+     */
+    private $pointer = 0;
 
     public function __construct($array = null)
     {
@@ -403,9 +415,18 @@ final class compare2RequestCallBack extends CallbackBase
 
 final class finInfo
 {
-    public string $name;
-    public string $toCompare;
-    public int $compare;
+    /**
+     * @var string $name
+     */
+    public $name;
+    /**
+     * @var string $toCompare
+     */
+    public $toCompare;
+    /**
+     * @var int $compare
+     */
+    public $compare;
 }
 /*
 abstract class toCompareBase

@@ -7,8 +7,14 @@ use JetBrains\PhpStorm\Deprecated;
 final class View
 {
 
-    private partObjects $parts;
-    protected bool $auth = false;
+    /**
+     * @var partObjects $parts
+     */
+    private $parts;
+    /**
+     * @var bool $auth
+     */
+    protected $auth = false;
 
     public function __construct(Routes &$routes)
     {

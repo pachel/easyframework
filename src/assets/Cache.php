@@ -4,15 +4,18 @@ namespace Pachel\EasyFrameWork;
 
 abstract class CacheBase extends Prefab
 {
-    private array $vars;
-    private string $CACHE_FILE, $CACHE_DIR, $TMP_DIR;
+    private  $vars;
+    private  $CACHE_FILE, $CACHE_DIR, $TMP_DIR;
 
-    public int $expires = 10;
-    private CacheObject $cache;
+    public  $expires = 10;
+    /**
+     * @var CacheObject $cache
+     */
+    private  $cache;
 
-    private string $start_hash;
+    private  $start_hash;
 
-    private bool $loaded = false;
+    private  $loaded = false;
     public function __construct($CACHE_DIR)
     {
         $this->CACHE_DIR = $CACHE_DIR;
