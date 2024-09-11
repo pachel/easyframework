@@ -555,6 +555,16 @@ class Base extends Prefab
             return $this->{$name}(...$arguments);
         }
     }
+    protected function view($template,$path = null)
+    {
+        $templatefile = Base::instance()->env("APP.VIEWS") . $template;
+        if(empty($path)) {
+            $URI = $this->Routing()->generate_uri();
+            $path = $URI;
+        }
+        $this->routes->find("path")->equal($path)->set(["layout" => $this->Routing()->get_layout($templatefile)]);
+        $this->routes->find("path")->equal($path)->set(["template" => $templatefile]);
+    }
 }
 
 /**
@@ -562,6 +572,7 @@ class Base extends Prefab
  * @method mixed env(string $name, mixed $value);
  * @method Routes get_loaded_routes();
  * @method void send_error(int $code);
+ * @method void view(string $template_file);
  * @property  mySql DB;
  * @property  array POST;
  * @property  array GET;
