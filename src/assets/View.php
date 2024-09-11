@@ -320,7 +320,8 @@ final class View
         }
         error_reporting(E_ERROR);
         if (preg_match("/.+?\.php/i", $template)) {
-            eval("?>" . $content . "<?php");
+            //eval("\?\>" . $content . "<?php");
+            eval("?>" . $content);
             $content = ob_get_clean();
         } else {
 
