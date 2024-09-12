@@ -17,15 +17,15 @@ class Routing extends Prefab
     /**
      * @var Routes $routes
      */
-    protected  $routes;
+    protected $routes;
     /**
      * @var string $to_regex_replace
      */
-    protected  $to_regex_replace;
+    protected $to_regex_replace;
 
     protected const
         METHOD_ALIASES = [
-        "method" => ["get", "post","all", "cli", "postget","ajax"],
+        "method" => ["get", "post", "all", "cli", "postget", "ajax"],
         "generate" => ["json"]
     ];
 
@@ -82,7 +82,7 @@ class Routing extends Prefab
      */
     protected function method($type, $path, $object = null)
     {
-        if($type == "all"){
+        if ($type == "all") {
             $type = "get|post|ajax";
         }
         $route = new Route();
@@ -224,12 +224,12 @@ class Routing extends Prefab
             return ".*";
         }
 
-        if(preg_match("/^regex:(.+)$/",$path,$preg)){
-            preg_match_all("/\([^\)]+\)/",$preg[1],$preg2);
-            if(count($preg2[0])>0){
+        if (preg_match("/^regex:(.+)$/", $path, $preg)) {
+            preg_match_all("/\([^\)]+\)/", $preg[1], $preg2);
+            if (count($preg2[0]) > 0) {
                 $c = 0;
-                foreach ($preg2[0] AS $item){
-                    $url_variables[] = "item".$c;
+                foreach ($preg2[0] as $item) {
+                    $url_variables[] = "item" . $c;
                     $c++;
                 }
 
@@ -237,7 +237,7 @@ class Routing extends Prefab
 
             return $preg[1];
         }
-        $path = preg_replace("/\/$/","",$path);
+        $path = preg_replace("/\/$/", "", $path);
 
         $to_replace = $this->to_regex_replace;
         /*
@@ -253,15 +253,15 @@ class Routing extends Prefab
             $url_variables = $preg[1];
 
             foreach ($preg[1] as $index => $ct) {
-                $path_to_regex = str_replace($preg[0][$index], "##".(!empty($preg[2][$index])?"______".str_replace(["(",")"],"",$preg[2][$index]):""), ($path_to_regex != "" ? $path_to_regex : $path));
-               // $path_to_regex = preg_replace("/([\/\-\{\}\[\]\.\+\*\?\$\^\(\)\\\\|])/", "\\\\$1", $path_to_regex);
-         //       $to_replace = "\/\.\-\?\+\[\]\{\}\(\)\*\|";
-              //  echo $to_replace2."\n";
+                $path_to_regex = str_replace($preg[0][$index], "##" . (!empty($preg[2][$index]) ? "______" . str_replace(["(", ")"], "", $preg[2][$index]) : ""), ($path_to_regex != "" ? $path_to_regex : $path));
+                // $path_to_regex = preg_replace("/([\/\-\{\}\[\]\.\+\*\?\$\^\(\)\\\\|])/", "\\\\$1", $path_to_regex);
+                //       $to_replace = "\/\.\-\?\+\[\]\{\}\(\)\*\|";
+                //  echo $to_replace2."\n";
 
 
             }
             //echo $path_to_regex." : 2\n";
-            $path_to_regex = preg_replace("/([".$to_replace."])/i", "\\\\$1", $path_to_regex);
+            $path_to_regex = preg_replace("/([" . $to_replace . "])/i", "\\\\$1", $path_to_regex);
             /*
             /*
             if ($counter > 0) {
@@ -276,7 +276,7 @@ class Routing extends Prefab
 
         //Minden regexes kifejezést ki kell iktatni a kereséshez
 
-        $path_to_regex = preg_replace("/(##)______([0-9]+)/",'(.{$2})', $path_to_regex);
+        $path_to_regex = preg_replace("/(##)______([0-9]+)/", '(.{$2})', $path_to_regex);
         $path_to_regex = str_replace(["##", "%"], ["(.+)", ".*"], $path_to_regex);
         /*
         if($path == "dashboard/{category}/{id}.html") {
@@ -314,9 +314,6 @@ class Routing extends Prefab
             if (!preg_match("/^" . $this->prepare_path_to_regex(Base::instance()->env("APP.VIEWS")) . "(.*)\/([^\.]+)\.([^\.]+)\.([^\.]+)$/", $template, $preg)) {
 
 
-
-
-
                 return "";
             }
 
@@ -345,7 +342,7 @@ class Routing extends Prefab
                 continue;
             }
             if (preg_match("/^" . $this->prepare_path_to_regex($layout) . "\." . $ext . "$/", $file)) {
-                return str_replace("//","/",Functions::checkSlash($view . $dir)) . $file;
+                return str_replace("//", "/", Functions::checkSlash($view . $dir)) . $file;
             }
         }
         if ($dir != "") {
@@ -368,7 +365,7 @@ class Routing extends Prefab
         if (empty($method)) {
             return "CLI";
         }
-        if(Base::instance()->env("SERVER.HTTP_X_REQUESTED_WITH") == "XMLHttpRequest"){
+        if (Base::instance()->env("SERVER.HTTP_X_REQUESTED_WITH") == "XMLHttpRequest") {
             $method = "AJAX";
         }
         return $method;
@@ -414,6 +411,17 @@ class Routing extends Prefab
             return $URI;
         } else {
             return $this->vars["uri"];
+        }
+    }
+
+    public function __get($name)
+    {
+        /**
+         * Azért kell, hogy kívülről is meg lehessen hívni
+         * az aktuálís linket
+         */
+        if (isset($this->vars[$name])) {
+            return $this->vars[$name];
         }
     }
 }
