@@ -292,7 +292,6 @@ class Base extends Prefab
     {
 
         foreach ($torun as &$item) {
-            print_r($item);
             //Ha jogosult a futtatásra, csak akkor fut le a script
             if (Auth::instance()->is_authorised($item)) {
                 $this->run_content($item);
@@ -301,7 +300,6 @@ class Base extends Prefab
                 $this->send_error(403);
             }
         }
-        exit();
     }
 
     /**
