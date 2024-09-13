@@ -8,6 +8,7 @@ use JetBrains\PhpStorm\Deprecated;
 use Pachel\EasyFrameWork\DB\mySql;
 use Pachel\EasyFrameWork\Routing;
 
+
 //set_error_handler("Pachel\\EasyFrameWork\\errorHandler");
 set_exception_handler("Pachel\\EasyFrameWork\\exceptionHandler");
 
@@ -372,12 +373,20 @@ class Base extends Prefab
          */
         if (!empty($object->className)) {
             $classname = $object->className;
+            if(!class_exists($classname)){
+                $this->send_error(405);
+            }
             $class = new $classname($this);
             if(!empty($arguments)) {
                 $return = $class->{$object->methodName}(...$arguments);
             }
             else{
-                $return = $class->{$object->methodName}();
+                if(method_exists($classname,$object->methodName)) {
+                    $return = $class->{$object->methodName}();
+                }
+                else{
+                    $this->send_error(405);
+                }
             }
             $this->routes->find("path")->equal($route->path)->set(["return" => $return]);
             return true;
