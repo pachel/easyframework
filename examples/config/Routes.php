@@ -19,6 +19,7 @@ Routing::instance()->get("teszt/{id}/{valami}.html",[SmallController::class,"ss"
 
 
 Routing::instance()->get("multiples")->view("multiples/index.html");
+Routing::instance()->get("multiples2",[SmallController::class,"dashboard2"]);
 Routing::instance()->get("withlayouts")->view("multiples/withlayout/inner.html")->allow();
 Routing::instance()->get("named")->view("named/content.html")->name("content");
 

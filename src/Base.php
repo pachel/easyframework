@@ -172,6 +172,7 @@ class Base extends Prefab
 
         $this->routes = Routing::instance()->get_matches_routes();
 
+
         $this->runRoutesWithoutTeplate();
 
         /**
@@ -237,7 +238,6 @@ class Base extends Prefab
     protected function runRoutesWithoutTeplate()
     {
         $torun = $this->routes->find("onlyone")->equal(true)->get();
-
         if (!empty($torun)) {
             /**
              * Csak azokat futtatjuk, ahol az onlyone paraméter be lettállítva
@@ -292,10 +292,16 @@ class Base extends Prefab
     {
 
         foreach ($torun as &$item) {
+            print_r($item);
+            //Ha jogosult a futtatásra, csak akkor fut le a script
             if (Auth::instance()->is_authorised($item)) {
                 $this->run_content($item);
             }
+            else{
+                $this->send_error(403);
+            }
         }
+        exit();
     }
 
     /**

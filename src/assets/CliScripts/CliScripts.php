@@ -79,6 +79,7 @@ class CliScripts
 
         $file = $this->app->env("app.temp")."generated_".$arguments[2]."Model.php";
         if(!is_writable($this->app->env("app.temp"))){
+            echo "ERROR:".$this->app->env("app.temp");
             die(1);
         }
         file_put_contents($file,"<?php\n".$class);

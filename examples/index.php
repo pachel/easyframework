@@ -41,7 +41,7 @@ class SmallController{
     }
     public function authoriser($path):bool
     {
-        if($path == "multiples" || 1){
+        if($path == "multiples"){
             return true;
         }
         return false;
