@@ -381,9 +381,9 @@ class Routing extends Prefab
         } else {
             //  $URI = "";
         }
+
         return $URI;
     }
-
     protected function get_matches_routes(): Routes
     {
         //ob_clean();

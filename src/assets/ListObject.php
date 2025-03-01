@@ -175,13 +175,6 @@ abstract class ListObject implements \ArrayAccess, \Iterator
 
     private function reindex()
     {
-        /*
-        $t = [];
-        foreach ($this->containter AS $item){
-            $t[] = $item;
-        }
-        $this->containter = $t;
-        */
         $this->containter = array_values($this->containter);
     }
 

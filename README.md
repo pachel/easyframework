@@ -1,4 +1,4 @@
-# Easy Framework
+# Easy FrameWork \<EFW>
 > klasj dlkasjdlkjasdél kj
 >
 > asjdh kjash dkjash jkdh ashd
@@ -15,7 +15,8 @@
 ````
 <?php
 use Pachel\EasyFrameWork\Base;
-
+ob_start();
+session_start();
 require_once __DIR__."/../vendor/autoload.php";
 
 $config = [
